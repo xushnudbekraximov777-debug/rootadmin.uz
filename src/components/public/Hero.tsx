@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { MapPin, Mail, Phone, Send, FolderGit2, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Profile } from "../../lib/types";
 
 export function Hero({ profile }: { profile: Profile }) {
+  const { t } = useTranslation();
   return (
     <section
       id="hero"
@@ -85,14 +87,14 @@ export function Hero({ profile }: { profile: Profile }) {
             className="inline-flex items-center gap-2 rounded-md border border-accent/40 bg-accent/15 px-5 py-2.5 text-sm font-medium text-accent hover:bg-accent/25 hover:shadow-accent transition-all"
           >
             <FolderGit2 className="h-4 w-4" />
-            View Projects
+            {t("hero.viewProjects")}
           </a>
           <a
             href="#contact"
             className="inline-flex items-center gap-2 rounded-md border border-base-600 px-5 py-2.5 text-sm font-medium text-slate-200 hover:border-accent/50 hover:text-accent transition-all"
           >
             <Send className="h-4 w-4" />
-            Contact Me
+            {t("hero.contactMe")}
           </a>
         </motion.div>
 
@@ -115,7 +117,7 @@ export function Hero({ profile }: { profile: Profile }) {
             href={`mailto:${profile.email}`}
             className="text-slate-500 hover:text-accent transition-colors font-mono"
           >
-            Email
+            {t("hero.email")}
           </a>
           <span className="text-base-600">|</span>
           <a

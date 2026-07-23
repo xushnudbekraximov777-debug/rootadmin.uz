@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { usePortfolioData } from "../lib/usePortfolioData";
 import { applyAccent } from "../lib/utils";
 import { Navbar } from "../components/public/Navbar";
@@ -11,6 +12,7 @@ import { ContactSection } from "../components/public/Contact";
 import { Footer } from "../components/public/Footer";
 
 export function PublicSite() {
+  const { t } = useTranslation();
   const { profile, experiences, education, certifications, skills, projects, settings, loading } =
     usePortfolioData();
 
@@ -25,7 +27,7 @@ export function PublicSite() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="font-mono text-accent animate-pulse">booting system...</div>
+        <div className="font-mono text-accent animate-pulse">{t("site.booting")}</div>
       </div>
     );
   }
@@ -34,10 +36,10 @@ export function PublicSite() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="font-mono text-2xl text-accent mb-2">[MAINTENANCE]</div>
-          <p className="text-slate-500">This site is temporarily offline for updates.</p>
+          <div className="font-mono text-2xl text-accent mb-2">{t("site.maintenance")}</div>
+          <p className="text-slate-500">{t("site.maintenanceMsg")}</p>
           <a href="/admin" className="mt-6 inline-block text-xs text-slate-700 hover:text-accent">
-            Admin Login
+            {t("footer.adminLogin")}
           </a>
         </div>
       </div>
@@ -48,7 +50,7 @@ export function PublicSite() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-slate-500 font-mono">// No profile data found. Seed the database.</p>
+          <p className="text-slate-500 font-mono">{t("site.noProfile")}</p>
         </div>
       </div>
     );

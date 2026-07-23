@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "about": "Men haqimda",
+    "experience": "Tajriba",
+    "education": "Ta'lim",
+    "skills": "Ko'nikmalar",
+    "projects": "Loyihalar",
+    "contact": "Aloqa",
+    "downloadCv": "CV yuklab olish",
+    "menu": "Menyu"
+  },
+  "hero": {
+    "viewProjects": "Loyihalarni ko'rish",
+    "contactMe": "Bog'lanish",
+    "email": "Email"
+  },
+  "experience": {
+    "title": "Tajriba",
+    "present": "Hozir",
+    "empty": "Hozircha tajriba qo'shilmagan."
+  },
+  "education": {
+    "title": "Ta'lim",
+    "present": "Hozir",
+    "empty": "Hozircha ta'lim ma'lumotlari yo'q."
+  },
+  "certifications": {
+    "title": "Sertifikatlar",
+    "verify": "tasdiqlash",
+    "empty": "Hozircha sertifikatlar yo'q."
+  },
+  "skills": {
+    "title": "Texnik ko'nikmalar"
+  },
+  "projects": {
+    "title": "Loyihalar",
+    "code": "Kod",
+    "liveDemo": "Demo",
+    "empty": "Hozircha loyihalar yo'q."
+  },
+  "terminal": {
+    "title": "Tizim holati",
+    "cpuLoad": "CPU yuklamasi",
+    "disk": "Disk",
+    "network": "Tarmoq",
+    "online": "Onlayn",
+    "uptime": "Ishlash vaqti"
+  },
+  "contact": {
+    "title": "Aloqa",
+    "description": "Loyihangiz bormi yoki tarmoqni xavfsizlashtirish kerakmi? Xabar yuboring, men sizga javob beraman. Tarmoq dizayni, server boshqaruvi yoki xavfsizlik bo'yicha maslahat bo'lsa, men ochiqman.",
+    "name": "Ism",
+    "email": "Email",
+    "subject": "Mavzu",
+    "message": "Xabar",
+    "namePlaceholder": "Ismingiz",
+    "emailPlaceholder": "siz@example.com",
+    "subjectPlaceholder": "Loyiha so'rovi",
+    "messagePlaceholder": "Loyihangiz haqida aytib bering...",
+    "send": "Xabar yuborish",
+    "sending": "Yuborilmoqda...",
+    "sent": "Xabar yuborildi! Tez orada javob beraman.",
+    "errorRequired": "Iltimos, ism, email va xabarni to'ldiring."
+  },
+  "footer": {
+    "builtWith": "React, Supabase va sysadmin mahorati bilan yaratilgan.",
+    "adminLogin": "Admin kirish"
+  },
+  "site": {
+    "booting": "tizim yuklanmoqda...",
+    "maintenance": "[TEXNIK ISH]",
+    "maintenanceMsg": "Sayt vaqtincha yangilanish uchun o'chirilgan.",
+    "noProfile": "// Profil ma'lumotlari topilmadi. Ma'lumotlar bazasini to'ldiring."
+  },
+  "language": {
+    "en": "English",
+    "uz": "O'zbek",
+    "ru": "Русский"
+  }
+}

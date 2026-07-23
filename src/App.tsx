@@ -11,6 +11,7 @@ import { EducationManager } from "./pages/admin/EducationManager";
 import { ProjectsManager } from "./pages/admin/ProjectsManager";
 import { MessagesManager } from "./pages/admin/MessagesManager";
 import { SettingsManager } from "./pages/admin/SettingsManager";
+import { AdminsManager } from "./pages/admin/AdminsManager";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -100,6 +101,16 @@ export default function App() {
           <ProtectedRoute>
             <AdminLayout>
               <SettingsManager />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/admins"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <AdminsManager />
             </AdminLayout>
           </ProtectedRoute>
         }

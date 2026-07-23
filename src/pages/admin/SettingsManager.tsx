@@ -28,7 +28,7 @@ export function SettingsManager() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const { user, signIn } = useAuth();
+  const { user } = useAuth();
 
   // password change
   const [newPass, setNewPass] = useState("");
@@ -57,11 +57,11 @@ export function SettingsManager() {
 
   const changePassword = async () => {
     setPassMsg("");
-    if (newPass.length < 6) {
-      setPassMsg("Password must be at least 6 characters.");
+    if (newPass.length < 8 || !/[A-Z]/.test(newPass) || !/[a-z]/.test(newPass) || !/[0-9]/.test(newPass)) {
+      setPassMsg("Password must be 8+ chars with upper, lower, and number.");
       return;
     }
-    const { data, error } = await supabase.auth.updateUser({ password: newPass });
+    const { error } = await supabase.auth.updateUser({ password: newPass });
     if (error) {
       setPassMsg(error.message);
     } else {
@@ -226,7 +226,7 @@ export function SettingsManager() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-400">Session timeout</span>
-                  <span className="font-mono text-slate-300">7 days (auto-refresh)</span>
+                  <span className="font-mono text-slate-300">Expires on browser close</span>
                 </div>
               </div>
             </CardContent>

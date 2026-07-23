@@ -1,16 +1,18 @@
 import { motion } from "framer-motion";
 import { Github, ExternalLink, FolderGit2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Project } from "../../lib/types";
 import { Badge } from "../ui/badge";
 
 export function ProjectsSection({ projects }: { projects: Project[] }) {
+  const { t } = useTranslation();
   return (
     <section id="projects" className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
       <div className="mb-10 flex items-center gap-2">
         <span className="text-accent">
           <FolderGit2 className="h-5 w-5" />
         </span>
-        <h2 className="text-2xl font-bold text-slate-100">Projects</h2>
+        <h2 className="text-2xl font-bold text-slate-100">{t("projects.title")}</h2>
         <span className="ml-2 h-px flex-1 bg-gradient-to-r from-base-600 to-transparent" />
       </div>
 
@@ -54,7 +56,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
                   className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors"
                 >
                   <Github className="h-3.5 w-3.5" />
-                  Code
+                  {t("projects.code")}
                 </a>
               )}
               {p.live_url && (
@@ -65,7 +67,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
                   className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-accent transition-colors"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  Live Demo
+                  {t("projects.liveDemo")}
                 </a>
               )}
             </div>
@@ -73,7 +75,7 @@ export function ProjectsSection({ projects }: { projects: Project[] }) {
         ))}
       </div>
       {projects.length === 0 && (
-        <p className="text-sm text-slate-600 font-mono">// No projects added yet.</p>
+        <p className="text-sm text-slate-600 font-mono">// {t("projects.empty")}</p>
       )}
     </section>
   );

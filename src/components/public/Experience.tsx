@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Briefcase, GraduationCap, Award } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Experience, Education, Certification } from "../../lib/types";
 import { formatDateRange } from "../../lib/utils";
 
@@ -12,12 +13,13 @@ export function ExperienceSection({
   education: Education[];
   certifications: Certification[];
 }) {
+  const { t } = useTranslation();
   return (
     <section id="experience" className="mx-auto max-w-6xl px-4 sm:px-6 py-20">
       <div className="grid lg:grid-cols-2 gap-12">
         {/* Experience */}
         <div id="about">
-          <SectionHeader icon={<Briefcase className="h-5 w-5" />} title="Experience" />
+          <SectionHeader icon={<Briefcase className="h-5 w-5" />} title={t("experience.title")} />
           <div className="space-y-6">
             {experiences.map((exp, i) => (
               <TimelineItem key={exp.id} index={i}>
@@ -31,20 +33,20 @@ export function ExperienceSection({
                 <p className="text-sm text-slate-500 mt-2 leading-relaxed">{exp.description}</p>
               </TimelineItem>
             ))}
-            {experiences.length === 0 && <Empty text="No experience added yet." />}
+            {experiences.length === 0 && <Empty text={t("experience.empty")} />}
           </div>
         </div>
 
         {/* Education + Certs */}
         <div id="education">
-          <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title="Education" />
+          <SectionHeader icon={<GraduationCap className="h-5 w-5" />} title={t("education.title")} />
           <div className="space-y-6">
             {education.map((ed, i) => (
               <TimelineItem key={ed.id} index={i}>
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <h3 className="text-base font-semibold text-slate-100">{ed.degree}</h3>
                   <span className="font-mono text-xs text-accent">
-                    {ed.start_year} — {ed.end_year || "Present"}
+                    {ed.start_year} — {ed.end_year || t("education.present")}
                   </span>
                 </div>
                 <p className="text-sm text-slate-400 mt-0.5">{ed.institution}</p>
@@ -54,11 +56,11 @@ export function ExperienceSection({
                 )}
               </TimelineItem>
             ))}
-            {education.length === 0 && <Empty text="No education added yet." />}
+            {education.length === 0 && <Empty text={t("education.empty")} />}
           </div>
 
           <div className="mt-12">
-            <SectionHeader icon={<Award className="h-5 w-5" />} title="Certifications" />
+            <SectionHeader icon={<Award className="h-5 w-5" />} title={t("certifications.title")} />
             <div className="space-y-4">
               {certifications.map((c, i) => (
                 <TimelineItem key={c.id} index={i} compact>
@@ -72,7 +74,7 @@ export function ExperienceSection({
                           rel="noreferrer"
                           className="ml-2 text-xs text-accent hover:underline"
                         >
-                          verify
+                          {t("certifications.verify")}
                         </a>
                       )}
                     </h3>
@@ -81,7 +83,7 @@ export function ExperienceSection({
                   {c.issuer && <p className="text-xs text-slate-500 mt-0.5">{c.issuer}</p>}
                 </TimelineItem>
               ))}
-              {certifications.length === 0 && <Empty text="No certifications added yet." />}
+              {certifications.length === 0 && <Empty text={t("certifications.empty")} />}
             </div>
           </div>
         </div>

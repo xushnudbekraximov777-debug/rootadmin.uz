@@ -12,6 +12,7 @@ import {
   LogOut,
   Terminal,
   ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { cn } from "../../lib/cn";
@@ -24,6 +25,7 @@ const navItems = [
   { to: "/admin/skills", label: "Skills", icon: Cpu },
   { to: "/admin/projects", label: "Projects", icon: FolderGit2 },
   { to: "/admin/messages", label: "Inbox", icon: Mail },
+  { to: "/admin/admins", label: "Manage Admins", icon: ShieldCheck },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

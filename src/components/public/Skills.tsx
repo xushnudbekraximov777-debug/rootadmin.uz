@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Cpu, Shield, Server, Wrench } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Skill } from "../../lib/types";
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -10,6 +11,7 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 export function SkillsSection({ skills }: { skills: Skill[] }) {
+  const { t } = useTranslation();
   const categories = Array.from(new Set(skills.map((s) => s.category)));
 
   return (
@@ -18,7 +20,7 @@ export function SkillsSection({ skills }: { skills: Skill[] }) {
         <span className="text-accent">
           <Cpu className="h-5 w-5" />
         </span>
-        <h2 className="text-2xl font-bold text-slate-100">Technical Skills</h2>
+        <h2 className="text-2xl font-bold text-slate-100">{t("skills.title")}</h2>
         <span className="ml-2 h-px flex-1 bg-gradient-to-r from-base-600 to-transparent" />
       </div>
 

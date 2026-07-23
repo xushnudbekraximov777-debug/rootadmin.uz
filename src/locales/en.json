@@ -1,0 +1,80 @@
+{
+  "nav": {
+    "about": "About",
+    "experience": "Experience",
+    "education": "Education",
+    "skills": "Skills",
+    "projects": "Projects",
+    "contact": "Contact",
+    "downloadCv": "Download CV",
+    "menu": "Menu"
+  },
+  "hero": {
+    "viewProjects": "View Projects",
+    "contactMe": "Contact Me",
+    "email": "Email"
+  },
+  "experience": {
+    "title": "Experience",
+    "present": "Present",
+    "empty": "No experience added yet."
+  },
+  "education": {
+    "title": "Education",
+    "present": "Present",
+    "empty": "No education added yet."
+  },
+  "certifications": {
+    "title": "Certifications",
+    "verify": "verify",
+    "empty": "No certifications added yet."
+  },
+  "skills": {
+    "title": "Technical Skills"
+  },
+  "projects": {
+    "title": "Projects",
+    "code": "Code",
+    "liveDemo": "Live Demo",
+    "empty": "No projects added yet."
+  },
+  "terminal": {
+    "title": "System Status",
+    "cpuLoad": "CPU Load",
+    "disk": "Disk",
+    "network": "Network",
+    "online": "Online",
+    "uptime": "Uptime"
+  },
+  "contact": {
+    "title": "Contact",
+    "description": "Have a project in mind or a network that needs securing? Send a message and I'll get back to you. Whether it's network design, server administration, or security consulting, I'm open to opportunities.",
+    "name": "Name",
+    "email": "Email",
+    "subject": "Subject",
+    "message": "Message",
+    "namePlaceholder": "Your name",
+    "emailPlaceholder": "you@example.com",
+    "subjectPlaceholder": "Project inquiry",
+    "messagePlaceholder": "Tell me about your project...",
+    "send": "Send Message",
+    "sending": "Sending...",
+    "sent": "Message sent! I'll get back to you soon.",
+    "errorRequired": "Please fill in name, email, and message."
+  },
+  "footer": {
+    "builtWith": "Built with React, Supabase & a sysadmin's touch.",
+    "adminLogin": "Admin Login"
+  },
+  "site": {
+    "booting": "booting system...",
+    "maintenance": "[MAINTENANCE]",
+    "maintenanceMsg": "This site is temporarily offline for updates.",
+    "noProfile": "// No profile data found. Seed the database."
+  },
+  "language": {
+    "en": "English",
+    "uz": "O'zbek",
+    "ru": "Русский"
+  }
+}

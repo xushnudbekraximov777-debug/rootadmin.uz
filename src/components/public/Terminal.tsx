@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { TerminalSquare, Cpu, HardDrive, Wifi, Activity, Server } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type Line = { text: string; type: "cmd" | "out" | "err" };
 
@@ -22,6 +23,7 @@ const bootSequence: Line[] = [
 ];
 
 export function TerminalWidget() {
+  const { t } = useTranslation();
   const [lines, setLines] = useState<Line[]>([]);
   const [typing, setTyping] = useState("");
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export function TerminalWidget() {
         <span className="text-accent">
           <TerminalSquare className="h-5 w-5" />
         </span>
-        <h2 className="text-2xl font-bold text-slate-100">System Status</h2>
+        <h2 className="text-2xl font-bold text-slate-100">{t("terminal.title")}</h2>
         <span className="ml-2 h-px flex-1 bg-gradient-to-r from-base-600 to-transparent" />
       </div>
 
@@ -107,10 +109,10 @@ export function TerminalWidget() {
 
         {/* Status cards */}
         <div className="space-y-4">
-          <StatusCard icon={<Cpu className="h-4 w-4" />} label="CPU Load" value="12%" bar={12} />
-          <StatusCard icon={<HardDrive className="h-4 w-4" />} label="Disk" value="47%" bar={47} />
-          <StatusCard icon={<Wifi className="h-4 w-4" />} label="Network" value="Online" bar={100} />
-          <StatusCard icon={<Activity className="h-4 w-4" />} label="Uptime" value="42d 3h" bar={88} />
+          <StatusCard icon={<Cpu className="h-4 w-4" />} label={t("terminal.cpuLoad")} value="12%" bar={12} />
+          <StatusCard icon={<HardDrive className="h-4 w-4" />} label={t("terminal.disk")} value="47%" bar={47} />
+          <StatusCard icon={<Wifi className="h-4 w-4" />} label={t("terminal.network")} value={t("terminal.online")} bar={100} />
+          <StatusCard icon={<Activity className="h-4 w-4" />} label={t("terminal.uptime")} value="42d 3h" bar={88} />
         </div>
       </div>
     </section>
