@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent: 34 211 238; /* cyan rgb */
+}
+
+* {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-base-950 text-slate-200 font-sans antialiased;
+  background-image:
+    radial-gradient(circle at 20% 0%, rgba(var(--accent), 0.08), transparent 40%),
+    radial-gradient(circle at 80% 100%, rgba(var(--accent), 0.05), transparent 40%);
+  background-attachment: fixed;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #0a0d12;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e2633;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2a3342;
+}
+
+/* Accent helpers */
+.text-accent {
+  color: rgb(var(--accent));
+}
+.bg-accent {
+  background-color: rgb(var(--accent));
+}
+.border-accent {
+  border-color: rgb(var(--accent));
+}
+.shadow-accent {
+  box-shadow: 0 0 0 1px rgba(var(--accent), 0.25), 0 0 24px rgba(var(--accent), 0.18);
+}
+.ring-accent {
+  --tw-ring-color: rgb(var(--accent));
+}
+
+/* Grid background */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glass card */
+.glass {
+  background: rgba(17, 22, 31, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Neon text glow */
+.glow-text {
+  text-shadow: 0 0 12px rgba(var(--accent), 0.5);
+}
+
+/* Terminal */
+.terminal-line::before {
+  content: "$ ";
+  color: rgb(var(--accent));
+}
