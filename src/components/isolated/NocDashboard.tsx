@@ -57,8 +57,9 @@ export function NocDashboard() {
   const loadMetrics = async () => {
     const { data, error: err } = await supabase
       .from("system_metrics")
-      .select("cpu_usage, disk_usage, ram_usage, uptime_str")
+      .select("*")
       .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
       .limit(1)
       .maybeSingle();
 
