@@ -12,6 +12,7 @@ import { ProjectsManager } from "./pages/admin/ProjectsManager";
 import { MessagesManager } from "./pages/admin/MessagesManager";
 import { SettingsManager } from "./pages/admin/SettingsManager";
 import { AdminsManager } from "./pages/admin/AdminsManager";
+import { InfraProjectsManager } from "./pages/admin/InfraProjectsManager";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -101,6 +102,16 @@ export default function App() {
           <ProtectedRoute>
             <AdminLayout>
               <SettingsManager />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/infra"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <InfraProjectsManager />
             </AdminLayout>
           </ProtectedRoute>
         }

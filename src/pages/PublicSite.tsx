@@ -14,7 +14,6 @@ import { MatrixRain } from "../components/isolated/MatrixRain";
 import { VisitorTracker } from "../components/isolated/VisitorTracker";
 import { InteractiveTerminal } from "../components/isolated/InteractiveTerminal";
 import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
-import { CTFArticlesList } from "../components/isolated/CTFArticlesList";
 
 export function PublicSite() {
   const { t } = useTranslation();
@@ -98,9 +97,6 @@ export function PublicSite() {
         </section>
 
         <TerminalWidget />
-
-        {/* CTF write-ups & security articles */}
-        <CTFArticlesList />
 
         <ContactSection email={profile.email} />
         <Footer logo={logoText} />

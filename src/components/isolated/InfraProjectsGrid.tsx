@@ -1,56 +1,14 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { supabase } from "../../lib/supabase";
 
 type InfraProject = {
+  id: string;
   title: string;
   description: string;
-  tags: string[];
   icon: string;
+  tags: string[];
+  sort_order: number;
 };
-
-const PROJECTS: InfraProject[] = [
-  {
-    title: "Telegram Bot Architecture",
-    description:
-      "Python-based bot with webhook delivery behind an Nginx reverse proxy, systemd service isolation, and rate limiting.",
-    tags: ["Python", "Nginx", "Systemd", "Let's Encrypt"],
-    icon: "bot",
-  },
-  {
-    title: "iRedMail Server",
-    description:
-      "Full mail server on Ubuntu 22.04 with Postfix, Dovecot, SPF, DKIM, and DMARC configured for secure email delivery.",
-    tags: ["Ubuntu", "Postfix", "Dovecot", "OpenSSL"],
-    icon: "mail",
-  },
-  {
-    title: "AWS EC2 Deployments",
-    description:
-      "Auto-scaling EC2 fleet inside a custom VPC with security groups, Application Load Balancer, and S3 backups.",
-    tags: ["AWS", "EC2", "VPC", "IAM"],
-    icon: "cloud",
-  },
-  {
-    title: "WireGuard VPN Gateway",
-    description:
-      "Site-to-site WireGuard tunnel with fail2ban, UFW rules, and DNS leak protection for remote office access.",
-    tags: ["WireGuard", "UFW", "fail2ban", "DNS"],
-    icon: "shield",
-  },
-  {
-    title: "Dockerized Web Stack",
-    description:
-      "Multi-container stack with Nginx proxy, Certbot auto-renewal, and isolated networks per service.",
-    tags: ["Docker", "Nginx", "Certbot", "Linux"],
-    icon: "container",
-  },
-  {
-    title: "Network Monitoring Stack",
-    description:
-      "Prometheus + Grafana + node_exporter for real-time metrics, alerting via Telegram webhook on threshold breach.",
-    tags: ["Prometheus", "Grafana", "Bash", "Alerting"],
-    icon: "chart",
-  },
-];
 
 const ICONS: Record<string, string> = {
   bot: "🤖",
@@ -59,10 +17,56 @@ const ICONS: Record<string, string> = {
   shield: "🛡️",
   container: "📦",
   chart: "📊",
+  server: "🖥️",
+  network: "🌐",
+  database: "🗄️",
+  lock: "🔒",
 };
 
 export function InfraProjectsGrid() {
-  const [hovered, setHovered] = useState<number | null>(null);
+  const [projects, setProjects] = useState<InfraProject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hovered, setHovered] = useState<string | null>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  const load = async () => {
+    const { data } = await supabase
+      .from("infra_projects")
+      .select("id, title, description, icon, tags, sort_order")
+      .order("sort_order", { ascending: true });
+    setProjects((data as InfraProject[]) ?? []);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    load();
+
+    // Live updates when admin adds/edits/deletes a project
+    channelRef.current = supabase
+      .channel("public_infra_projects")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "infra_projects" },
+        () => { load(); }
+      )
+      .subscribe();
+
+    return () => {
+      if (channelRef.current) supabase.removeChannel(channelRef.current);
+    };
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
+        <p className="font-mono text-sm text-accent animate-pulse">
+          Loading infrastructure projects…
+        </p>
+      </section>
+    );
+  }
+
+  if (projects.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
@@ -76,27 +80,26 @@ export function InfraProjectsGrid() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {PROJECTS.map((p, i) => (
+        {projects.map((p) => (
           <div
-            key={p.title}
-            onMouseEnter={() => setHovered(i)}
+            key={p.id}
+            onMouseEnter={() => setHovered(p.id)}
             onMouseLeave={() => setHovered(null)}
             className={`group relative rounded-xl p-6 bg-gray-900/50 backdrop-blur-md border transition-all duration-300 ${
-              hovered === i
+              hovered === p.id
                 ? "border-emerald-400/60 shadow-[0_0_20px_rgba(0,255,100,0.15)] -translate-y-1"
                 : "border-slate-700/50"
             }`}
           >
-            {/* Glow accent */}
             <div
-              className={`absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 ${
-                hovered === i ? "opacity-100" : ""
-              } bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none`}
+              className={`absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 pointer-events-none bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 ${
+                hovered === p.id ? "opacity-100" : ""
+              }`}
             />
 
             <div className="relative">
               <div className="mb-4 flex items-center gap-3">
-                <span className="text-2xl">{ICONS[p.icon]}</span>
+                <span className="text-2xl">{ICONS[p.icon] ?? "🖥️"}</span>
                 <h3 className="text-lg font-semibold text-slate-100">{p.title}</h3>
               </div>
 

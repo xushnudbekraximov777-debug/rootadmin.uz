@@ -1,84 +1,38 @@
-import { useEffect, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 
 type ToggleState = "loading" | "saving" | "idle";
 
-type TrafficPoint = { time: string; value: number };
+type TrafficPoint = { hour: string; count: number };
 
-type AlertEntry = {
-  id: string;
-  level: "INFO" | "WARN" | "CRITICAL";
-  source: string;
-  message: string;
-  time: string;
+type SystemMetrics = {
+  cpu_usage: number;
+  disk_usage: number;
+  ram_usage: number;
+  uptime_str: string;
 };
 
-const MOCK_TRAFFIC: TrafficPoint[] = [
-  { time: "00:00", value: 12 },
-  { time: "02:00", value: 8 },
-  { time: "04:00", value: 5 },
-  { time: "06:00", value: 14 },
-  { time: "08:00", value: 32 },
-  { time: "10:00", value: 47 },
-  { time: "12:00", value: 38 },
-  { time: "14:00", value: 52 },
-  { time: "16:00", value: 61 },
-  { time: "18:00", value: 44 },
-  { time: "20:00", value: 28 },
-  { time: "22:00", value: 19 },
-];
+// ── helpers ──────────────────────────────────────────────────────────────────
 
-const MOCK_ALERTS: AlertEntry[] = [
-  {
-    id: "a1",
-    level: "CRITICAL",
-    source: "honeypot-01",
-    message: "SSH brute-force detected from 185.220.101.42 — 47 attempts in 60s",
-    time: "14:32:08",
-  },
-  {
-    id: "a2",
-    level: "WARN",
-    source: "fail2ban",
-    message: "Banned IP 45.155.205.233 after 5 failed auth on port 22",
-    time: "14:28:51",
-  },
-  {
-    id: "a3",
-    level: "INFO",
-    source: "nginx",
-    message: "Let's Encrypt certificate renewed for rootadmin.uz",
-    time: "14:15:00",
-  },
-  {
-    id: "a4",
-    level: "WARN",
-    source: "honeypot-02",
-    message: "Port scan detected from 193.32.162.14 — ports 21,22,80,443",
-    time: "13:59:42",
-  },
-  {
-    id: "a5",
-    level: "CRITICAL",
-    source: "wireguard",
-    message: "Unauthorized peer handshake attempt rejected — 92.118.39.81",
-    time: "13:41:17",
-  },
-  {
-    id: "a6",
-    level: "INFO",
-    source: "systemd",
-    message: "docker.service restarted after config reload",
-    time: "13:22:03",
-  },
-];
+function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
+  const buckets: Record<string, number> = {};
+  // seed last 12 hours with 0
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date();
+    d.setHours(d.getHours() - i, 0, 0, 0);
+    const key = `${String(d.getHours()).padStart(2, "0")}:00`;
+    buckets[key] = 0;
+  }
+  for (const row of rows) {
+    const d = new Date(row.created_at);
+    const key = `${String(d.getHours()).padStart(2, "0")}:00`;
+    if (key in buckets) buckets[key]++;
+  }
+  return Object.entries(buckets).map(([hour, count]) => ({ hour, count }));
+}
 
-const ALERT_STYLES: Record<AlertEntry["level"], string> = {
-  INFO: "text-blue-400 border-blue-500/30 bg-blue-500/5",
-  WARN: "text-yellow-400 border-yellow-500/30 bg-yellow-500/5",
-  CRITICAL: "text-red-400 border-red-500/30 bg-red-500/5",
-};
+// ── component ─────────────────────────────────────────────────────────────────
 
 export function NocDashboard() {
   const [matrixEnabled, setMatrixEnabled] = useState(false);
@@ -86,23 +40,121 @@ export function NocDashboard() {
   const [toggleState, setToggleState] = useState<ToggleState>("loading");
   const [error, setError] = useState<string | null>(null);
 
+  const [traffic, setTraffic] = useState<TrafficPoint[]>([]);
+  const [totalViews, setTotalViews] = useState(0);
+
+  const [metrics, setMetrics] = useState<SystemMetrics>({
+    cpu_usage: 0,
+    disk_usage: 0,
+    ram_usage: 0,
+    uptime_str: "—",
+  });
+
+  // keep a stable ref to the raw page_view rows for incremental updates
+  const rawViewsRef = useRef<{ created_at: string }[]>([]);
+
+  // ── initial load ────────────────────────────────────────────────────────────
+
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
-      const { data, error: err } = await supabase
+      // settings
+      const { data: settingsData, error: settingsErr } = await supabase
         .from("settings")
         .select("matrix_enabled, maintenance_mode")
         .eq("id", SETTINGS_ID)
         .maybeSingle();
 
-      if (err) {
-        setError(err.message);
-      } else if (data) {
-        setMatrixEnabled(Boolean(data.matrix_enabled));
-        setMaintenanceMode(Boolean(data.maintenance_mode));
+      if (!cancelled) {
+        if (settingsErr) setError(settingsErr.message);
+        else if (settingsData) {
+          setMatrixEnabled(Boolean(settingsData.matrix_enabled));
+          setMaintenanceMode(Boolean(settingsData.maintenance_mode));
+        }
+        setToggleState("idle");
       }
-      setToggleState("idle");
+
+      // page_views — last 12 h
+      const since = new Date();
+      since.setHours(since.getHours() - 12);
+      const { data: viewsData } = await supabase
+        .from("page_views")
+        .select("created_at")
+        .gte("created_at", since.toISOString())
+        .order("created_at", { ascending: true });
+
+      if (!cancelled && viewsData) {
+        rawViewsRef.current = viewsData as { created_at: string }[];
+        setTraffic(buildTrafficPoints(rawViewsRef.current));
+      }
+
+      // total views (all time)
+      const { count } = await supabase
+        .from("page_views")
+        .select("id", { count: "exact", head: true });
+      if (!cancelled && count !== null) setTotalViews(count);
+
+      // system_metrics — latest row
+      const { data: metricsData } = await supabase
+        .from("system_metrics")
+        .select("cpu_usage, disk_usage, ram_usage, uptime_str")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (!cancelled && metricsData) {
+        setMetrics(metricsData as SystemMetrics);
+      }
     })();
+
+    return () => { cancelled = true; };
   }, []);
+
+  // ── Realtime: page_views ─────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("noc_page_views")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "page_views" },
+        (payload) => {
+          const newRow = payload.new as { created_at: string };
+          rawViewsRef.current = [...rawViewsRef.current, newRow];
+          setTraffic(buildTrafficPoints(rawViewsRef.current));
+          setTotalViews((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // ── Realtime: system_metrics ─────────────────────────────────────────────────
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("noc_system_metrics")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "system_metrics" },
+        (payload) => {
+          const row = payload.new as SystemMetrics;
+          setMetrics({
+            cpu_usage: row.cpu_usage,
+            disk_usage: row.disk_usage,
+            ram_usage: row.ram_usage,
+            uptime_str: row.uptime_str,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  // ── settings toggle ──────────────────────────────────────────────────────────
 
   const updateSetting = async (field: "matrix_enabled" | "maintenance_mode", value: boolean) => {
     setToggleState("saving");
@@ -112,19 +164,19 @@ export function NocDashboard() {
       .update({ [field]: value })
       .eq("id", SETTINGS_ID);
 
-    if (err) {
-      setError(err.message);
-    } else {
+    if (err) setError(err.message);
+    else {
       if (field === "matrix_enabled") setMatrixEnabled(value);
       if (field === "maintenance_mode") setMaintenanceMode(value);
     }
     setToggleState("idle");
   };
 
-  const maxTraffic = Math.max(...MOCK_TRAFFIC.map((p) => p.value));
+  const maxTraffic = Math.max(1, ...traffic.map((p) => p.count));
 
   return (
     <div className="min-h-screen bg-black text-emerald-400 font-mono p-4 sm:p-6 lg:p-8">
+
       {/* Header */}
       <header className="mb-8 border-b border-emerald-500/20 pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -134,7 +186,7 @@ export function NocDashboard() {
               <h1 className="text-lg font-bold text-emerald-300 tracking-wide">
                 NOC / SOC CYBER COMMAND CENTER
               </h1>
-              <p className="text-xs text-emerald-600">rootadmin.uz — security operations</p>
+              <p className="text-xs text-emerald-600">rootadmin.uz — live security operations</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-xs">
@@ -152,35 +204,68 @@ export function NocDashboard() {
         </div>
       )}
 
-      {/* System metrics */}
+      {/* System metrics — live from system_metrics table */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <MetricCard icon={<Cpu className="h-4 w-4" />} label="CPU LOAD" value="12%" bar={12} />
-        <MetricCard icon={<HardDrive className="h-4 w-4" />} label="DISK" value="47%" bar={47} />
-        <MetricCard icon={<Wifi className="h-4 w-4" />} label="NETWORK" value="ONLINE" bar={100} />
-        <MetricCard icon={<Server className="h-4 w-4" />} label="UPTIME" value="42d 3h" bar={88} />
+        <MetricCard
+          icon={<Cpu className="h-4 w-4" />}
+          label="CPU LOAD"
+          value={`${metrics.cpu_usage}%`}
+          bar={metrics.cpu_usage}
+        />
+        <MetricCard
+          icon={<HardDrive className="h-4 w-4" />}
+          label="DISK"
+          value={`${metrics.disk_usage}%`}
+          bar={metrics.disk_usage}
+        />
+        <MetricCard
+          icon={<Wifi className="h-4 w-4" />}
+          label="RAM"
+          value={`${metrics.ram_usage}%`}
+          bar={metrics.ram_usage}
+        />
+        <MetricCard
+          icon={<Server className="h-4 w-4" />}
+          label="UPTIME"
+          value={metrics.uptime_str}
+          bar={88}
+        />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Traffic chart */}
+
+        {/* Traffic chart — real page_views grouped by hour */}
         <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-emerald-300">REAL-TIME TRAFFIC</h2>
-            <span className="ml-auto text-xs text-emerald-600">req/min</span>
+            <h2 className="text-sm font-semibold text-emerald-300">REAL-TIME VISITOR TRAFFIC</h2>
+            <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-500">
+              <Eye className="h-3.5 w-3.5" />
+              {totalViews.toLocaleString()} total views
+            </span>
           </div>
 
-          <div className="flex items-end justify-between gap-1.5 h-40">
-            {MOCK_TRAFFIC.map((p) => (
-              <div key={p.time} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-t-sm bg-gradient-to-t from-emerald-500/30 to-emerald-400/80 transition-all hover:from-emerald-500/50 hover:to-emerald-300"
-                  style={{ height: `${(p.value / maxTraffic) * 100}%` }}
-                  title={`${p.value} req/min`}
-                />
-                <span className="text-[10px] text-emerald-600 hidden sm:inline">{p.time}</span>
-              </div>
-            ))}
-          </div>
+          {traffic.length === 0 ? (
+            <div className="h-40 flex items-center justify-center text-xs text-emerald-700">
+              Waiting for visitor data…
+            </div>
+          ) : (
+            <div className="flex items-end justify-between gap-1.5 h-40">
+              {traffic.map((p) => (
+                <div key={p.hour} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    className="w-full min-h-[2px] rounded-t-sm bg-gradient-to-t from-emerald-500/30 to-emerald-400/80 transition-all duration-500 hover:from-emerald-500/50 hover:to-emerald-300"
+                    style={{ height: `${(p.count / maxTraffic) * 100}%` }}
+                    title={`${p.count} visit${p.count !== 1 ? "s" : ""}`}
+                  />
+                  <span className="text-[10px] text-emerald-600 hidden sm:inline">{p.hour}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-3 text-[10px] text-emerald-700">
+            visits/hour · last 12h · updates live via Supabase Realtime
+          </p>
         </div>
 
         {/* Settings toggles */}
@@ -207,41 +292,19 @@ export function NocDashboard() {
             disabled={toggleState !== "idle"}
             onToggle={() => updateSetting("maintenance_mode", !maintenanceMode)}
           />
-        </div>
-      </div>
 
-      {/* Security alerts */}
-      <div className="mt-6 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md overflow-hidden">
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-emerald-500/20">
-          <ShieldAlert className="h-4 w-4 text-red-400" />
-          <h2 className="text-sm font-semibold text-emerald-300">HONEYPOT SECURITY ALERTS</h2>
-          <span className="ml-auto text-xs text-emerald-600">
-            {MOCK_ALERTS.filter((a) => a.level === "CRITICAL").length} critical /{" "}
-            {MOCK_ALERTS.filter((a) => a.level === "WARN").length} warnings
-          </span>
-        </div>
-
-        <div className="divide-y divide-emerald-500/10">
-          {MOCK_ALERTS.map((a) => (
-            <div
-              key={a.id}
-              className={`flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 px-5 py-3 text-xs ${ALERT_STYLES[a.level]}`}
-            >
-              <span className="shrink-0 font-bold w-20">{a.level}</span>
-              <span className="shrink-0 text-emerald-600 hidden sm:inline">{a.time}</span>
-              <span className="shrink-0 text-emerald-500">{a.source}</span>
-              <span className="flex-1 text-emerald-300/80">{a.message}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="px-5 py-2.5 border-t border-emerald-500/20 text-xs text-emerald-600">
-          — end of log — {MOCK_ALERTS.length} entries
+          <div className="mt-6 pt-4 border-t border-emerald-500/10 text-xs text-emerald-600 space-y-1">
+            <p>metrics source: <span className="text-emerald-500">system_metrics</span></p>
+            <p>traffic source: <span className="text-emerald-500">page_views</span></p>
+            <p>realtime: <span className="text-emerald-400 animate-pulse">● live</span></p>
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
+// ── sub-components ─────────────────────────────────────────────────────────────
 
 function MetricCard({
   icon,
@@ -266,7 +329,7 @@ function MetricCard({
       <div className="h-1.5 rounded-full bg-emerald-900/40 overflow-hidden">
         <div
           className="h-full bg-emerald-500/60 rounded-full transition-all duration-700"
-          style={{ width: `${bar}%` }}
+          style={{ width: `${Math.min(100, bar)}%` }}
         />
       </div>
     </div>
