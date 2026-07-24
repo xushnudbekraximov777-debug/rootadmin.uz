@@ -10,6 +10,8 @@ import { ProjectsSection } from "../components/public/Projects";
 import { TerminalWidget } from "../components/public/Terminal";
 import { ContactSection } from "../components/public/Contact";
 import { Footer } from "../components/public/Footer";
+import { MatrixRain } from "../components/isolated/MatrixRain";
+import { VisitorTracker } from "../components/isolated/VisitorTracker";
 
 export function PublicSite() {
   const { t } = useTranslation();
@@ -57,21 +59,26 @@ export function PublicSite() {
   }
 
   const logoText = `<${profile.name.replace(/\s/g, "")} />`;
+  const matrixEnabled = Boolean(settings?.matrix_enabled);
 
   return (
-    <div className="min-h-screen">
-      <Navbar logo={logoText} cvUrl={profile.cv_url || settings?.resume_url || ""} />
-      <Hero profile={profile} />
-      <ExperienceSection
-        experiences={experiences}
-        education={education}
-        certifications={certifications}
-      />
-      <SkillsSection skills={skills} />
-      <ProjectsSection projects={projects} />
-      <TerminalWidget />
-      <ContactSection email={profile.email} />
-      <Footer logo={logoText} />
+    <div className="min-h-screen relative">
+      <VisitorTracker />
+      {matrixEnabled && <MatrixRain />}
+      <div className="relative z-0">
+        <Navbar logo={logoText} cvUrl={profile.cv_url || settings?.resume_url || ""} />
+        <Hero profile={profile} />
+        <ExperienceSection
+          experiences={experiences}
+          education={education}
+          certifications={certifications}
+        />
+        <SkillsSection skills={skills} />
+        <ProjectsSection projects={projects} />
+        <TerminalWidget />
+        <ContactSection email={profile.email} />
+        <Footer logo={logoText} />
+      </div>
     </div>
   );
 }

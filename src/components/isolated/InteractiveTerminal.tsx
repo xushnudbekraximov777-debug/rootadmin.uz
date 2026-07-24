@@ -64,7 +64,7 @@ export function InteractiveTerminal() {
 
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="rounded-xl overflow-hidden border border-emerald-500/30 bg-black/60 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,0,0.08)]">
+      <div className="rounded-xl overflow-hidden border border-emerald-500/30 bg-black/70 backdrop-blur-md shadow-[0_0_30px_rgba(0,255,0,0.08)]">
         {/* Window controls */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b border-emerald-500/20 bg-black/40">
           <span className="h-3 w-3 rounded-full bg-red-500" />

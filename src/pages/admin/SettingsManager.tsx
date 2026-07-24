@@ -19,6 +19,7 @@ const empty: Settings = {
   resume_url: "",
   maintenance_mode: false,
   open_for_freelance: true,
+  matrix_enabled: false,
   updated_at: "",
 };
 

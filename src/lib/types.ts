@@ -89,6 +89,7 @@ export type Settings = {
   resume_url: string;
   maintenance_mode: boolean;
   open_for_freelance: boolean;
+  matrix_enabled: boolean;
   updated_at: string;
 };
 
