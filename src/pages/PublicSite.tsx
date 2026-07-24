@@ -12,6 +12,9 @@ import { ContactSection } from "../components/public/Contact";
 import { Footer } from "../components/public/Footer";
 import { MatrixRain } from "../components/isolated/MatrixRain";
 import { VisitorTracker } from "../components/isolated/VisitorTracker";
+import { InteractiveTerminal } from "../components/isolated/InteractiveTerminal";
+import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
+import { CTFArticlesList } from "../components/isolated/CTFArticlesList";
 
 export function PublicSite() {
   const { t } = useTranslation();
@@ -75,7 +78,30 @@ export function PublicSite() {
         />
         <SkillsSection skills={skills} />
         <ProjectsSection projects={projects} />
+
+        {/* Real-world infrastructure projects */}
+        <InfraProjectsGrid />
+
+        {/* Interactive terminal */}
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold text-slate-100">
+              Interactive <span className="text-accent">Terminal</span>
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Type a command to explore. Try <span className="font-mono text-accent">whoami</span>,{" "}
+              <span className="font-mono text-accent">skills</span>, or{" "}
+              <span className="font-mono text-accent">projects</span>.
+            </p>
+          </div>
+          <InteractiveTerminal />
+        </section>
+
         <TerminalWidget />
+
+        {/* CTF write-ups & security articles */}
+        <CTFArticlesList />
+
         <ContactSection email={profile.email} />
         <Footer logo={logoText} />
       </div>
