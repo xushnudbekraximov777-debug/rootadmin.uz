@@ -53,6 +53,27 @@ export function NocDashboard() {
   // keep a stable ref to the raw page_view rows for incremental updates
   const rawViewsRef = useRef<{ created_at: string }[]>([]);
 
+  // standalone so the Realtime handler can re-invoke it as a fallback
+  const loadMetrics = async () => {
+    const { data, error: err } = await supabase
+      .from("system_metrics")
+      .select("cpu_usage, disk_usage, ram_usage, uptime_str")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (err) {
+      console.error("[NocDashboard] system_metrics fetch error:", err);
+      return;
+    }
+    if (!data) {
+      console.warn("[NocDashboard] system_metrics: no rows found");
+      return;
+    }
+    console.log("[NocDashboard] system_metrics loaded:", data);
+    setMetrics(data as SystemMetrics);
+  };
+
   // ── initial load ────────────────────────────────────────────────────────────
 
   useEffect(() => {
@@ -78,11 +99,13 @@ export function NocDashboard() {
       // page_views — last 12 h
       const since = new Date();
       since.setHours(since.getHours() - 12);
-      const { data: viewsData } = await supabase
+      const { data: viewsData, error: viewsErr } = await supabase
         .from("page_views")
         .select("created_at")
         .gte("created_at", since.toISOString())
         .order("created_at", { ascending: true });
+
+      if (viewsErr) console.error("[NocDashboard] page_views fetch error:", viewsErr);
 
       if (!cancelled && viewsData) {
         rawViewsRef.current = viewsData as { created_at: string }[];
@@ -90,22 +113,14 @@ export function NocDashboard() {
       }
 
       // total views (all time)
-      const { count } = await supabase
+      const { count, error: countErr } = await supabase
         .from("page_views")
         .select("id", { count: "exact", head: true });
+      if (countErr) console.error("[NocDashboard] page_views count error:", countErr);
       if (!cancelled && count !== null) setTotalViews(count);
 
-      // system_metrics — latest row
-      const { data: metricsData } = await supabase
-        .from("system_metrics")
-        .select("cpu_usage, disk_usage, ram_usage, uptime_str")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (!cancelled && metricsData) {
-        setMetrics(metricsData as SystemMetrics);
-      }
+      // system_metrics — always fetch the absolute latest row
+      if (!cancelled) await loadMetrics();
     })();
 
     return () => { cancelled = true; };
@@ -134,22 +149,34 @@ export function NocDashboard() {
   // ── Realtime: system_metrics ─────────────────────────────────────────────────
 
   useEffect(() => {
+    const applyRow = (row: SystemMetrics) => {
+      console.log("[NocDashboard] system_metrics realtime update:", row);
+      setMetrics({
+        cpu_usage: row.cpu_usage,
+        disk_usage: row.disk_usage,
+        ram_usage: row.ram_usage,
+        uptime_str: row.uptime_str,
+      });
+    };
+
     const channel = supabase
       .channel("noc_system_metrics")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "system_metrics" },
-        (payload) => {
-          const row = payload.new as SystemMetrics;
-          setMetrics({
-            cpu_usage: row.cpu_usage,
-            disk_usage: row.disk_usage,
-            ram_usage: row.ram_usage,
-            uptime_str: row.uptime_str,
-          });
-        }
+        (payload) => applyRow(payload.new as SystemMetrics)
       )
-      .subscribe();
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "system_metrics" },
+        (payload) => applyRow(payload.new as SystemMetrics)
+      )
+      .subscribe((status) => {
+        console.log("[NocDashboard] system_metrics channel status:", status);
+        // If the channel connects after initial load, re-fetch to catch any
+        // rows that arrived during the subscription setup window.
+        if (status === "SUBSCRIBED") loadMetrics();
+      });
 
     return () => { supabase.removeChannel(channel); };
   }, []);
