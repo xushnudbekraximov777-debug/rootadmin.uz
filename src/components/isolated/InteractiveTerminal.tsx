@@ -107,7 +107,6 @@ export function InteractiveTerminal() {
                   setInput("");
                 }
               }}
-              autoFocus
               spellCheck={false}
               autoCapitalize="off"
               autoComplete="off"

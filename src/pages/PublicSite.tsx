@@ -21,6 +21,10 @@ export function PublicSite() {
     usePortfolioData();
 
   useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
+  useEffect(() => {
     if (settings?.accent_color) applyAccent(settings.accent_color);
   }, [settings?.accent_color]);
 
