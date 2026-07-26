@@ -20,11 +20,10 @@ type SystemMetrics = {
 function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
   const buckets: { timeKey: string; hourLabel: string; count: number }[] = [];
   
-  // Oxirgi 12 soat uchun aniq vaqt kalitlarini yaratish (sana bilan birga)
   for (let i = 11; i >= 0; i--) {
     const d = new Date();
     d.setHours(d.getHours() - i, 0, 0, 0);
-    const timeKey = d.toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+    const timeKey = d.toISOString().slice(0, 13);
     const hourLabel = `${String(d.getHours()).padStart(2, "0")}:00`;
     buckets.push({ timeKey, hourLabel, count: 0 });
   }
@@ -241,7 +240,6 @@ export function NocDashboard() {
               const heightPercent = Math.max(8, (p.count / maxTraffic) * 100);
               return (
                 <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative">
-                  {/* Tooltip */}
                   <div className="absolute -top-8 bg-emerald-950 text-emerald-300 text-[10px] px-2 py-0.5 rounded border border-emerald-500/40 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-lg">
                     {p.hour}: {p.count} visits
                   </div>
@@ -326,15 +324,18 @@ export function NocDashboard() {
           )}
         </div>
 
-        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
-          <div className="mb-4 flex items-center gap-2">
-            <Terminal className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-emerald-300">LIVE SERVER AUDIT (TIZIM LOGLARI)</h2>
-          </div>
-          <div className="bg-black border border-emerald-500/20 rounded-lg p-4 h-56 overflow-y-auto">
-            <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed">
-              {auditLog || 'Kutilmoqda...'}
-            </pre>
+        {/* Live Server Audit - Kattalashtirildi (h-80) */}
+        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl flex flex-col justify-between">
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Terminal className="h-4 w-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">LIVE SERVER AUDIT (TIZIM LOGLARI)</h2>
+            </div>
+            <div className="bg-black border border-emerald-500/20 rounded-lg p-4 h-80 overflow-y-auto">
+              <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed">
+                {auditLog || 'Kutilmoqda...'}
+              </pre>
+            </div>
           </div>
         </div>
       </div>
