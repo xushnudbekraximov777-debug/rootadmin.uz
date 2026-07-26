@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal } from "lucide-react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 
 type ToggleState = "loading" | "saving" | "idle";
 type TrafficPoint = { hour: string; count: number };
+type GeoItem = { ip: string; country: string; code: string };
 type SystemMetrics = {
   cpu_usage: number;
   disk_usage: number;
@@ -13,6 +14,7 @@ type SystemMetrics = {
   ssl_days: string;
   nginx_up: boolean;
   ssh_up: boolean;
+  geo_traffic: GeoItem[];
 };
 
 function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
@@ -39,13 +41,11 @@ export function NocDashboard() {
 
   const [traffic, setTraffic] = useState<TrafficPoint[]>([]);
   const [totalViews, setTotalViews] = useState(0);
-
-  // Live Terminal uchun audit log state
   const [auditLog, setAuditLog] = useState<string>("Loglar serverdan olinmoqda...");
 
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu_usage: 0, disk_usage: 0, ram_usage: 0, uptime_str: "—",
-    banned_ips: "0", ssl_days: "0", nginx_up: true, ssh_up: true
+    banned_ips: "0", ssl_days: "0", nginx_up: true, ssh_up: true, geo_traffic: []
   });
 
   const rawViewsRef = useRef<{ created_at: string }[]>([]);
@@ -86,7 +86,6 @@ export function NocDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Metrikalar va Audit loglarni har 10 soniyada yangilab turish
   useEffect(() => {
     const fetchMetricsAndLogs = async () => {
       try {
@@ -102,6 +101,7 @@ export function NocDashboard() {
             ssl_days: data.ssl_days || "0",
             nginx_up: data.nginx_up !== undefined ? data.nginx_up : true,
             ssh_up: data.ssh_up !== undefined ? data.ssh_up : true,
+            geo_traffic: data.geo_traffic || [],
           });
         }
       } catch (err) {
@@ -209,16 +209,41 @@ export function NocDashboard() {
         </div>
       </div>
 
-      {/* JONLI SERVER AUDIT TERMINALI */}
-      <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
-        <div className="mb-4 flex items-center gap-2">
-          <Terminal className="h-4 w-4 text-emerald-400" />
-          <h2 className="text-sm font-semibold text-emerald-300">LIVE SERVER AUDIT (TIZIM LOGLARI)</h2>
+      {/* REAL GEOIP TRAFFIC RADAR */}
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-1 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-emerald-300">REAL GEOIP RADAR</h2>
+          </div>
+          {metrics.geo_traffic.length === 0 ? (
+            <div className="text-xs text-emerald-700 py-4">IP geolokatsiyalari yuklanmoqda...</div>
+          ) : (
+            <div className="space-y-3">
+              {metrics.geo_traffic.map((g, idx) => (
+                <div key={idx} className="flex items-center justify-between bg-emerald-950/20 border border-emerald-500/10 p-2.5 rounded-lg text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-emerald-300 uppercase bg-emerald-900/40 px-1.5 py-0.5 rounded">{g.code || "N/A"}</span>
+                    <span className="text-emerald-400">{g.country}</span>
+                  </div>
+                  <span className="text-emerald-600 font-mono">{g.ip}</span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-        <div className="bg-black border border-emerald-500/20 rounded-lg p-4 h-72 overflow-y-auto">
-          <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed">
-            {auditLog || 'Kutilmoqda...'}
-          </pre>
+
+        {/* JONLI SERVER AUDIT TERMINALI */}
+        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
+          <div className="mb-4 flex items-center gap-2">
+            <Terminal className="h-4 w-4 text-emerald-400" />
+            <h2 className="text-sm font-semibold text-emerald-300">LIVE SERVER AUDIT (TIZIM LOGLARI)</h2>
+          </div>
+          <div className="bg-black border border-emerald-500/20 rounded-lg p-4 h-56 overflow-y-auto">
+            <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed">
+              {auditLog || 'Kutilmoqda...'}
+            </pre>
+          </div>
         </div>
       </div>
     </div>
