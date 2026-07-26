@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin, Play } from "lucide-react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin, Play, ShieldOff } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 
 type ToggleState = "loading" | "saving" | "idle";
@@ -39,6 +39,7 @@ export function NocDashboard() {
   const [toggleState, setToggleState] = useState<ToggleState>("loading");
   const [isExecuting, setIsExecuting] = useState(false);
   const [execMessage, setExecMessage] = useState<string | null>(null);
+  const [actionIpMsg, setActionIpMsg] = useState<string | null>(null);
 
   const [traffic, setTraffic] = useState<TrafficPoint[]>([]);
   const [totalViews, setTotalViews] = useState(0);
@@ -146,11 +147,32 @@ export function NocDashboard() {
       } else {
         setExecMessage("Xatolik yuz berdi!");
       }
-    } catch (err) {
+    } catch {
       setExecMessage("Server bilan aloqa yo'q!");
     } finally {
       setIsExecuting(false);
       setTimeout(() => setExecMessage(null), 3000);
+    }
+  };
+
+  const handleIpAction = async (ip: string, action: "ban" | "unban") => {
+    setActionIpMsg(`${action === "ban" ? "Bloklanmoqda" : "Bandan chiqarilmoqda"}: ${ip}...`);
+    try {
+      const res = await fetch(`/api/${action}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ip }),
+      });
+      if (res.ok) {
+        setActionIpMsg(`Muvaffaqiyatli bajarildi: ${ip}`);
+        await fetchMetricsAndLogs();
+      } else {
+        setActionIpMsg(`Xatolik yuz berdi (${ip})`);
+      }
+    } catch {
+      setActionIpMsg(`Server bilan aloqa yo'q!`);
+    } finally {
+      setTimeout(() => setActionIpMsg(null), 3500);
     }
   };
 
@@ -243,21 +265,42 @@ export function NocDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-1 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-emerald-300">REAL GEOIP RADAR</h2>
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">REAL GEOIP RADAR & FIREWALL</h2>
+            </div>
           </div>
+          {actionIpMsg && <div className="mb-3 p-2 bg-emerald-950/60 border border-emerald-500/30 rounded text-[10px] text-emerald-300 text-center animate-pulse">{actionIpMsg}</div>}
           {metrics.geo_traffic.length === 0 ? (
             <div className="text-xs text-emerald-700 py-4">IP geolokatsiyalari yuklanmoqda...</div>
           ) : (
             <div className="space-y-3">
               {metrics.geo_traffic.map((g, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-emerald-950/20 border border-emerald-500/10 p-2.5 rounded-lg text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-emerald-300 uppercase bg-emerald-900/40 px-1.5 py-0.5 rounded">{g.code || "N/A"}</span>
-                    <span className="text-emerald-400">{g.country}</span>
+                <div key={idx} className="bg-emerald-950/20 border border-emerald-500/10 p-2.5 rounded-lg text-xs flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-emerald-300 uppercase bg-emerald-900/40 px-1.5 py-0.5 rounded">{g.code || "N/A"}</span>
+                      <span className="text-emerald-400 text-[11px] truncate max-w-[90px]">{g.country}</span>
+                    </div>
+                    <span className="text-emerald-500 font-mono text-[11px]">{g.ip}</span>
                   </div>
-                  <span className="text-emerald-600 font-mono">{g.ip}</span>
+                  <div className="flex items-center gap-2 pt-1 border-t border-emerald-500/10">
+                    <button
+                      onClick={() => handleIpAction(g.ip, "ban")}
+                      className="flex-1 flex items-center justify-center gap-1 bg-red-950/40 hover:bg-red-900/60 border border-red-500/30 text-red-400 text-[10px] py-1 px-2 rounded transition-all"
+                      title="Serverda bu IP manzilni bloklash"
+                    >
+                      <ShieldAlert className="h-3 w-3" /> BAN
+                    </button>
+                    <button
+                      onClick={() => handleIpAction(g.ip, "unban")}
+                      className="flex-1 flex items-center justify-center gap-1 bg-emerald-900/30 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 text-[10px] py-1 px-2 rounded transition-all"
+                      title="Serverda bu IP manzilni bandan chiqarish"
+                    >
+                      <ShieldOff className="h-3 w-3" /> UNBAN
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
