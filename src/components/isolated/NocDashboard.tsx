@@ -18,19 +18,28 @@ type SystemMetrics = {
 };
 
 function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
-  const buckets: Record<string, number> = {};
+  const buckets: { timeKey: string; hourLabel: string; count: number }[] = [];
+  
+  // Oxirgi 12 soat uchun aniq vaqt kalitlarini yaratish (sana bilan birga)
   for (let i = 11; i >= 0; i--) {
     const d = new Date();
     d.setHours(d.getHours() - i, 0, 0, 0);
-    const key = `${String(d.getHours()).padStart(2, "0")}:00`;
-    buckets[key] = 0;
+    const timeKey = d.toISOString().slice(0, 13); // "YYYY-MM-DDTHH"
+    const hourLabel = `${String(d.getHours()).padStart(2, "0")}:00`;
+    buckets.push({ timeKey, hourLabel, count: 0 });
   }
+
   for (const row of rows) {
-    const d = new Date(row.created_at);
-    const key = `${String(d.getHours()).padStart(2, "0")}:00`;
-    if (key in buckets) buckets[key]++;
+    if (!row.created_at) continue;
+    const rowDate = new Date(row.created_at);
+    const rowKey = rowDate.toISOString().slice(0, 13);
+    const bucket = buckets.find(b => b.timeKey === rowKey);
+    if (bucket) {
+      bucket.count++;
+    }
   }
-  return Object.entries(buckets).map(([hour, count]) => ({ hour, count }));
+
+  return buckets.map(b => ({ hour: b.hourLabel, count: b.count }));
 }
 
 export function NocDashboard() {
@@ -215,27 +224,37 @@ export function NocDashboard() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Activity className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-emerald-300">REAL-TIME VISITOR TRAFFIC</h2>
-            <span className="ml-auto flex items-center gap-1.5 text-xs text-emerald-500">
+        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Activity className="h-4 w-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">REAL-TIME VISITOR TRAFFIC</h2>
+            </div>
+            <span className="flex items-center gap-1.5 text-xs text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded-md">
               <Eye className="h-3.5 w-3.5" />
               {totalViews.toLocaleString()} total views
             </span>
           </div>
-          {traffic.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-xs text-emerald-700">Waiting for visitor data…</div>
-          ) : (
-            <div className="flex items-end justify-between gap-1.5 h-40">
-              {traffic.map((p) => (
-                <div key={p.hour} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="w-full min-h-[2px] rounded-t-sm bg-gradient-to-t from-emerald-500/30 to-emerald-400/80 transition-all duration-500" style={{ height: `${(p.count / maxTraffic) * 100}%` }} title={`${p.count} visits`} />
-                  <span className="text-[10px] text-emerald-600 hidden sm:inline">{p.hour}</span>
+          
+          <div className="h-44 flex items-end justify-between gap-2 pt-6 px-1 border border-emerald-500/10 bg-black/40 rounded-lg">
+            {traffic.map((p, idx) => {
+              const heightPercent = Math.max(8, (p.count / maxTraffic) * 100);
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group relative">
+                  {/* Tooltip */}
+                  <div className="absolute -top-8 bg-emerald-950 text-emerald-300 text-[10px] px-2 py-0.5 rounded border border-emerald-500/40 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none shadow-lg">
+                    {p.hour}: {p.count} visits
+                  </div>
+                  <span className="text-[9px] text-emerald-500 font-bold">{p.count > 0 ? p.count : ""}</span>
+                  <div 
+                    className="w-full rounded-t-sm bg-gradient-to-t from-emerald-600/50 via-emerald-500/80 to-emerald-400 group-hover:to-emerald-300 transition-all duration-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]" 
+                    style={{ height: `${p.count === 0 ? 4 : heightPercent}%` }} 
+                  />
+                  <span className="text-[10px] text-emerald-600">{p.hour}</span>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
 
         <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 flex flex-col justify-between">
