@@ -40,6 +40,9 @@ export function NocDashboard() {
   const [traffic, setTraffic] = useState<TrafficPoint[]>([]);
   const [totalViews, setTotalViews] = useState(0);
 
+  // Live Terminal uchun audit log state
+  const [auditLog, setAuditLog] = useState<string>("Loglar serverdan olinmoqda...");
+
   const [metrics, setMetrics] = useState<SystemMetrics>({
     cpu_usage: 0, disk_usage: 0, ram_usage: 0, uptime_str: "—",
     banned_ips: "0", ssl_days: "0", nginx_up: true, ssh_up: true
@@ -83,8 +86,9 @@ export function NocDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // Metrikalar va Audit loglarni har 10 soniyada yangilab turish
   useEffect(() => {
-    const fetchMetrics = async () => {
+    const fetchMetricsAndLogs = async () => {
       try {
         const response = await fetch(`/metrics.json?t=${Date.now()}`);
         if (response.ok) {
@@ -103,10 +107,20 @@ export function NocDashboard() {
       } catch (err) {
         console.error("metrics.json xatosi:", err);
       }
+
+      try {
+        const logResponse = await fetch(`/audit_log.txt?t=${Date.now()}`);
+        if (logResponse.ok) {
+          const logText = await logResponse.text();
+          setAuditLog(logText);
+        }
+      } catch (err) {
+        console.error("audit_log.txt xatosi:", err);
+      }
     };
 
-    fetchMetrics();
-    const interval = setInterval(fetchMetrics, 10000);
+    fetchMetricsAndLogs();
+    const interval = setInterval(fetchMetricsAndLogs, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -160,7 +174,7 @@ export function NocDashboard() {
         <ServiceCard icon={<Terminal className="h-4 w-4" />} label="SSH" isUp={metrics.ssh_up} />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
             <Activity className="h-4 w-4 text-emerald-400" />
@@ -192,6 +206,19 @@ export function NocDashboard() {
           <ToggleRow label="Matrix Background" description="Animated digital rain" enabled={matrixEnabled} disabled={toggleState !== "idle"} onToggle={() => updateSetting("matrix_enabled", !matrixEnabled)} />
           <div className="my-4 h-px bg-emerald-500/10" />
           <ToggleRow label="Maintenance Mode" description="Take site offline" enabled={maintenanceMode} disabled={toggleState !== "idle"} onToggle={() => updateSetting("maintenance_mode", !maintenanceMode)} />
+        </div>
+      </div>
+
+      {/* JONLI SERVER AUDIT TERMINALI */}
+      <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
+        <div className="mb-4 flex items-center gap-2">
+          <Terminal className="h-4 w-4 text-emerald-400" />
+          <h2 className="text-sm font-semibold text-emerald-300">LIVE SERVER AUDIT (TIZIM LOGLARI)</h2>
+        </div>
+        <div className="bg-black border border-emerald-500/20 rounded-lg p-4 h-72 overflow-y-auto">
+          <pre className="text-emerald-400 font-mono text-xs whitespace-pre-wrap leading-relaxed">
+            {auditLog || 'Kutilmoqda...'}
+          </pre>
         </div>
       </div>
     </div>
