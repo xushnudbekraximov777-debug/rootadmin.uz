@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye } from "lucide-react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 
 type ToggleState = "loading" | "saving" | "idle";
@@ -9,6 +9,10 @@ type SystemMetrics = {
   disk_usage: number;
   ram_usage: number;
   uptime_str: string;
+  banned_ips: string;
+  ssl_days: string;
+  nginx_up: boolean;
+  ssh_up: boolean;
 };
 
 function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
@@ -37,10 +41,8 @@ export function NocDashboard() {
   const [totalViews, setTotalViews] = useState(0);
 
   const [metrics, setMetrics] = useState<SystemMetrics>({
-    cpu_usage: 0,
-    disk_usage: 0,
-    ram_usage: 0,
-    uptime_str: "—",
+    cpu_usage: 0, disk_usage: 0, ram_usage: 0, uptime_str: "—",
+    banned_ips: "0", ssl_days: "0", nginx_up: true, ssh_up: true
   });
 
   const rawViewsRef = useRef<{ created_at: string }[]>([]);
@@ -48,15 +50,9 @@ export function NocDashboard() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data: settingsData, error: settingsErr } = await supabase
-        .from("settings")
-        .select("matrix_enabled, maintenance_mode")
-        .eq("id", SETTINGS_ID)
-        .maybeSingle();
-
+      const { data: settingsData } = await supabase.from("settings").select("matrix_enabled, maintenance_mode").eq("id", SETTINGS_ID).maybeSingle();
       if (!cancelled) {
-        if (settingsErr) setError(settingsErr.message);
-        else if (settingsData) {
+        if (settingsData) {
           setMatrixEnabled(Boolean(settingsData.matrix_enabled));
           setMaintenanceMode(Boolean(settingsData.maintenance_mode));
         }
@@ -65,49 +61,32 @@ export function NocDashboard() {
 
       const since = new Date();
       since.setHours(since.getHours() - 12);
-      const { data: viewsData, error: viewsErr } = await supabase
-        .from("page_views")
-        .select("created_at")
-        .gte("created_at", since.toISOString())
-        .order("created_at", { ascending: true });
-
-      if (viewsErr) console.error("[NocDashboard] page_views fetch error:", viewsErr);
+      const { data: viewsData } = await supabase.from("page_views").select("created_at").gte("created_at", since.toISOString()).order("created_at", { ascending: true });
       if (!cancelled && viewsData) {
         rawViewsRef.current = viewsData as { created_at: string }[];
         setTraffic(buildTrafficPoints(rawViewsRef.current));
       }
 
-      const { count, error: countErr } = await supabase
-        .from("page_views")
-        .select("id", { count: "exact", head: true });
-      if (countErr) console.error("[NocDashboard] page_views count error:", countErr);
+      const { count } = await supabase.from("page_views").select("id", { count: "exact", head: true });
       if (!cancelled && count !== null) setTotalViews(count);
     })();
     return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
-    const channel = supabase
-      .channel("noc_page_views")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "page_views" },
-        (payload) => {
+    const channel = supabase.channel("noc_page_views").on("postgres_changes", { event: "INSERT", schema: "public", table: "page_views" }, (payload) => {
           const newRow = payload.new as { created_at: string };
           rawViewsRef.current = [...rawViewsRef.current, newRow];
           setTraffic(buildTrafficPoints(rawViewsRef.current));
           setTotalViews((prev) => prev + 1);
-        }
-      )
-      .subscribe();
+        }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Lokal metrics.json faylini har 10 sekundda o'qish
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await fetch('/metrics.json');
+        const response = await fetch(`/metrics.json?t=${Date.now()}`);
         if (response.ok) {
           const data = await response.json();
           setMetrics({
@@ -115,10 +94,14 @@ export function NocDashboard() {
             disk_usage: data.disk_usage || 0,
             ram_usage: data.ram_usage || 0,
             uptime_str: data.uptime_str || "—",
+            banned_ips: data.banned_ips || "0",
+            ssl_days: data.ssl_days || "0",
+            nginx_up: data.nginx_up !== undefined ? data.nginx_up : true,
+            ssh_up: data.ssh_up !== undefined ? data.ssh_up : true,
           });
         }
       } catch (err) {
-        console.error("metrics.json o'qish xatosi:", err);
+        console.error("metrics.json xatosi:", err);
       }
     };
 
@@ -130,11 +113,7 @@ export function NocDashboard() {
   const updateSetting = async (field: "matrix_enabled" | "maintenance_mode", value: boolean) => {
     setToggleState("saving");
     setError(null);
-    const { error: err } = await supabase
-      .from("settings")
-      .update({ [field]: value })
-      .eq("id", SETTINGS_ID);
-
+    const { error: err } = await supabase.from("settings").update({ [field]: value }).eq("id", SETTINGS_ID);
     if (err) setError(err.message);
     else {
       if (field === "matrix_enabled") setMatrixEnabled(value);
@@ -167,17 +146,18 @@ export function NocDashboard() {
         </div>
       </header>
 
-      {error && (
-        <div className="mb-6 rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          ERROR: {error}
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
         <MetricCard icon={<Cpu className="h-4 w-4" />} label="CPU LOAD" value={`${metrics.cpu_usage}%`} bar={metrics.cpu_usage} />
         <MetricCard icon={<HardDrive className="h-4 w-4" />} label="DISK" value={`${metrics.disk_usage}%`} bar={metrics.disk_usage} />
         <MetricCard icon={<Wifi className="h-4 w-4" />} label="RAM" value={`${metrics.ram_usage}%`} bar={metrics.ram_usage} />
-        <MetricCard icon={<Server className="h-4 w-4" />} label="UPTIME" value={metrics.uptime_str} bar={88} />
+        <MetricCard icon={<Server className="h-4 w-4" />} label="UPTIME" value={metrics.uptime_str} bar={100} />
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatusCard icon={<Shield className="h-4 w-4" />} label="BANNED IPS" value={metrics.banned_ips} />
+        <StatusCard icon={<Lock className="h-4 w-4" />} label="SSL EXPIRY" value={`${metrics.ssl_days} days`} />
+        <ServiceCard icon={<Globe className="h-4 w-4" />} label="NGINX" isUp={metrics.nginx_up} />
+        <ServiceCard icon={<Terminal className="h-4 w-4" />} label="SSH" isUp={metrics.ssh_up} />
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
@@ -190,20 +170,13 @@ export function NocDashboard() {
               {totalViews.toLocaleString()} total views
             </span>
           </div>
-
           {traffic.length === 0 ? (
-            <div className="h-40 flex items-center justify-center text-xs text-emerald-700">
-              Waiting for visitor data…
-            </div>
+            <div className="h-40 flex items-center justify-center text-xs text-emerald-700">Waiting for visitor data…</div>
           ) : (
             <div className="flex items-end justify-between gap-1.5 h-40">
               {traffic.map((p) => (
                 <div key={p.hour} className="flex-1 flex flex-col items-center gap-1">
-                  <div
-                    className="w-full min-h-[2px] rounded-t-sm bg-gradient-to-t from-emerald-500/30 to-emerald-400/80 transition-all duration-500"
-                    style={{ height: `${(p.count / maxTraffic) * 100}%` }}
-                    title={`${p.count} visits`}
-                  />
+                  <div className="w-full min-h-[2px] rounded-t-sm bg-gradient-to-t from-emerald-500/30 to-emerald-400/80 transition-all duration-500" style={{ height: `${(p.count / maxTraffic) * 100}%` }} title={`${p.count} visits`} />
                   <span className="text-[10px] text-emerald-600 hidden sm:inline">{p.hour}</span>
                 </div>
               ))}
@@ -216,7 +189,6 @@ export function NocDashboard() {
             <Lock className="h-4 w-4 text-emerald-400" />
             <h2 className="text-sm font-semibold text-emerald-300">SITE CONTROLS</h2>
           </div>
-
           <ToggleRow label="Matrix Background" description="Animated digital rain" enabled={matrixEnabled} disabled={toggleState !== "idle"} onToggle={() => updateSetting("matrix_enabled", !matrixEnabled)} />
           <div className="my-4 h-px bg-emerald-500/10" />
           <ToggleRow label="Maintenance Mode" description="Take site offline" enabled={maintenanceMode} disabled={toggleState !== "idle"} onToggle={() => updateSetting("maintenance_mode", !maintenanceMode)} />
@@ -230,10 +202,7 @@ function MetricCard({ icon, label, value, bar }: { icon: React.ReactNode; label:
   return (
     <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="flex items-center gap-1.5 text-xs text-emerald-600">
-          <span className="text-emerald-400">{icon}</span>
-          {label}
-        </span>
+        <span className="flex items-center gap-1.5 text-xs text-emerald-600"><span className="text-emerald-400">{icon}</span>{label}</span>
         <span className="text-sm text-emerald-300">{value}</span>
       </div>
       <div className="h-1.5 rounded-full bg-emerald-900/40 overflow-hidden">
@@ -243,16 +212,32 @@ function MetricCard({ icon, label, value, bar }: { icon: React.ReactNode; label:
   );
 }
 
+function StatusCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-4 flex flex-col justify-center">
+      <div className="flex items-center gap-1.5 text-xs text-emerald-600 mb-1"><span className="text-emerald-400">{icon}</span>{label}</div>
+      <div className="text-lg font-bold text-emerald-300">{value}</div>
+    </div>
+  );
+}
+
+function ServiceCard({ icon, label, isUp }: { icon: React.ReactNode; label: string; isUp: boolean }) {
+  return (
+    <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-4 flex flex-col justify-center">
+      <div className="flex items-center gap-1.5 text-xs text-emerald-600 mb-2"><span className="text-emerald-400">{icon}</span>{label}</div>
+      <div className="flex items-center gap-2">
+        <span className={`h-2.5 w-2.5 rounded-full ${isUp ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
+        <span className={`text-sm font-bold ${isUp ? "text-emerald-300" : "text-red-400"}`}>{isUp ? "ONLINE" : "OFFLINE"}</span>
+      </div>
+    </div>
+  );
+}
+
 function ToggleRow({ label, description, enabled, disabled, onToggle }: { label: string; description: string; enabled: boolean; disabled: boolean; onToggle: () => void }) {
   return (
     <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm text-emerald-300">{label}</p>
-        <p className="text-xs text-emerald-600">{description}</p>
-      </div>
-      <button onClick={onToggle} disabled={disabled} className={`relative inline-flex h-6 w-12 items-center rounded-full border transition-colors duration-300 disabled:opacity-50 ${enabled ? "border-emerald-500/60 bg-emerald-500/20" : "border-red-500/60 bg-red-500/20"}`}>
-        <span className={`inline-flex h-4 w-4 transform rounded-full transition-transform duration-300 ${enabled ? "translate-x-6 bg-emerald-500" : "translate-x-1 bg-red-500"}`} />
-      </button>
+      <div><p className="text-sm text-emerald-300">{label}</p><p className="text-xs text-emerald-600">{description}</p></div>
+      <button onClick={onToggle} disabled={disabled} className={`relative inline-flex h-6 w-12 items-center rounded-full border transition-colors duration-300 disabled:opacity-50 ${enabled ? "border-emerald-500/60 bg-emerald-500/20" : "border-red-500/60 bg-red-500/20"}`}><span className={`inline-flex h-4 w-4 transform rounded-full transition-transform duration-300 ${enabled ? "translate-x-6 bg-emerald-500" : "translate-x-1 bg-red-500"}`} /></button>
     </div>
   );
 }
