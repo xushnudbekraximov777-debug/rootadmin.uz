@@ -101,6 +101,13 @@ export type SecurityLog = {
   created_at: string;
 };
 
+export type BannedIp = {
+  id: string;
+  ip: string;
+  reason: string;
+  created_at: string;
+};
+
 export const SKILL_CATEGORIES = [
   "Routing & Switching",
   "Network Security",

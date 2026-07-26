@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin, Play, ShieldOff } from "lucide-react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin, Play, ShieldOff, Ban } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
+import type { BannedIp } from "../../lib/types";
 
 type ToggleState = "loading" | "saving" | "idle";
 type TrafficPoint = { hour: string; count: number };
@@ -16,6 +17,8 @@ type SystemMetrics = {
   ssh_up: boolean;
   geo_traffic: GeoItem[];
 };
+
+type BanActionState = { ip: string; action: "ban" | "unban"; status: "pending" | "ok" | "error" } | null;
 
 function buildTrafficPoints(rows: { created_at: string }[]): TrafficPoint[] {
   const buckets: { timeKey: string; hourLabel: string; count: number }[] = [];
@@ -57,6 +60,10 @@ export function NocDashboard() {
     cpu_usage: 0, disk_usage: 0, ram_usage: 0, uptime_str: "—",
     banned_ips: "0", ssl_days: "0", nginx_up: true, ssh_up: true, geo_traffic: []
   });
+
+  const [bannedIps, setBannedIps] = useState<BannedIp[]>([]);
+  const [banInput, setBanInput] = useState("");
+  const [banAction, setBanAction] = useState<BanActionState>(null);
 
   const rawViewsRef = useRef<{ created_at: string }[]>([]);
 
@@ -128,6 +135,33 @@ export function NocDashboard() {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
+  // ── Banned IPs: load + Realtime ──────────────────────────────────────────────
+  const loadBannedIps = async () => {
+    const { data, error: err } = await supabase
+      .from("banned_ips")
+      .select("id, ip, reason, created_at")
+      .order("created_at", { ascending: false });
+    if (err) {
+      console.error("[NocDashboard] banned_ips fetch error:", err);
+      return;
+    }
+    setBannedIps((data as BannedIp[]) ?? []);
+  };
+
+  useEffect(() => {
+    loadBannedIps();
+    const channel = supabase
+      .channel("noc_banned_ips")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "banned_ips" }, () => loadBannedIps())
+      .on("postgres_changes", { event: "DELETE", schema: "public", table: "banned_ips" }, () => loadBannedIps())
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "banned_ips" }, () => loadBannedIps())
+      .subscribe((status) => {
+        console.log("[NocDashboard] banned_ips channel status:", status);
+        if (status === "SUBSCRIBED") loadBannedIps();
+      });
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   useEffect(() => {
     fetchMetricsAndLogs();
     const interval = setInterval(fetchMetricsAndLogs, 10000);
@@ -164,24 +198,42 @@ export function NocDashboard() {
   };
 
   const handleIpAction = async (ip: string, action: "ban" | "unban") => {
+    if (!ip) return;
+    setBanAction({ ip, action, status: "pending" });
     setActionIpMsg(`${action === "ban" ? "Bloklanmoqda" : "Bandan chiqarilmoqda"}: ${ip}...`);
     try {
-      const res = await fetch(`/api/${action}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ip }),
-      });
-      if (res.ok) {
-        setActionIpMsg(`Muvaffaqiyatli bajarildi: ${ip}`);
-        await fetchMetricsAndLogs();
+      if (action === "ban") {
+        const { error: err } = await supabase
+          .from("banned_ips")
+          .upsert({ ip }, { onConflict: "ip" });
+        if (err) throw err;
       } else {
-        setActionIpMsg(`Xatolik yuz berdi (${ip})`);
+        const { error: err } = await supabase
+          .from("banned_ips")
+          .delete()
+          .eq("ip", ip);
+        if (err) throw err;
       }
-    } catch {
-      setActionIpMsg(`Server bilan aloqa yo'q!`);
+      setBanAction({ ip, action, status: "ok" });
+      setActionIpMsg(`Muvaffaqiyatli bajarildi: ${ip}`);
+      await loadBannedIps();
+    } catch (err) {
+      console.error(`[NocDashboard] ${action} failed for ${ip}:`, err);
+      setBanAction({ ip, action, status: "error" });
+      setActionIpMsg(`Xatolik yuz berdi (${ip})`);
     } finally {
-      setTimeout(() => setActionIpMsg(null), 3500);
+      setTimeout(() => {
+        setBanAction(null);
+        setActionIpMsg(null);
+      }, 3500);
     }
+  };
+
+  const handleAddBan = async () => {
+    const ip = banInput.trim();
+    if (!ip) return;
+    await handleIpAction(ip, "ban");
+    setBanInput("");
   };
 
   const maxTraffic = Math.max(1, ...traffic.map((p) => p.count));
@@ -216,7 +268,7 @@ export function NocDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatusCard icon={<Shield className="h-4 w-4" />} label="BANNED IPS" value={metrics.banned_ips} />
+        <StatusCard icon={<Shield className="h-4 w-4" />} label="BANNED IPS" value={String(bannedIps.length)} />
         <StatusCard icon={<Lock className="h-4 w-4" />} label="SSL EXPIRY" value={`${metrics.ssl_days} days`} />
         <ServiceCard icon={<Globe className="h-4 w-4" />} label="NGINX" isUp={metrics.nginx_up} />
         <ServiceCard icon={<Terminal className="h-4 w-4" />} label="SSH" isUp={metrics.ssh_up} />
@@ -288,6 +340,28 @@ export function NocDashboard() {
               <h2 className="text-sm font-semibold text-emerald-300">REAL GEOIP RADAR & FIREWALL</h2>
             </div>
           </div>
+          <div className="mb-4 p-3 bg-emerald-950/40 border border-emerald-500/30 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Ban className="h-3.5 w-3.5 text-red-400" />
+              <span className="text-[10px] font-bold text-emerald-300">MANUAL BAN</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                value={banInput}
+                onChange={(e) => setBanInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleAddBan(); }}
+                placeholder="IP manzil, masalan 192.168.1.50"
+                className="flex-1 bg-black/60 border border-emerald-500/30 rounded px-2 py-1.5 text-xs text-emerald-300 placeholder-emerald-700 focus:outline-none focus:border-emerald-500/60"
+              />
+              <button
+                onClick={handleAddBan}
+                disabled={!banInput.trim() || banAction?.status === "pending"}
+                className="flex items-center justify-center gap-1 bg-red-950/50 hover:bg-red-900/60 border border-red-500/40 text-red-300 text-[10px] font-bold py-1.5 px-3 rounded transition-all disabled:opacity-50"
+              >
+                <ShieldAlert className="h-3 w-3" /> BAN
+              </button>
+            </div>
+          </div>
           {actionIpMsg && <div className="mb-3 p-2 bg-emerald-950/60 border border-emerald-500/30 rounded text-[10px] text-emerald-300 text-center animate-pulse">{actionIpMsg}</div>}
           {metrics.geo_traffic.length === 0 ? (
             <div className="text-xs text-emerald-700 py-4">IP geolokatsiyalari yuklanmoqda...</div>
@@ -324,8 +398,42 @@ export function NocDashboard() {
           )}
         </div>
 
+        <div className="lg:col-span-1 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
+          <div className="mb-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Shield className="h-4 w-4 text-red-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">ACTIVE BANNED IPS LIST</h2>
+            </div>
+            <span className="text-[10px] text-emerald-500 bg-emerald-950/40 border border-emerald-500/30 px-2 py-1 rounded">{bannedIps.length} active</span>
+          </div>
+          {bannedIps.length === 0 ? (
+            <div className="text-xs text-emerald-700 py-6 text-center">Faol bloklangan IP manzillar yo'q</div>
+          ) : (
+            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+              {bannedIps.map((b) => {
+                const isPending = banAction?.ip === b.ip && banAction?.status === "pending";
+                return (
+                  <div key={b.id} className="bg-emerald-950/20 border border-emerald-500/10 p-2.5 rounded-lg text-xs flex items-center justify-between gap-2">
+                    <div className="flex flex-col gap-0.5 min-w-0">
+                      <span className="text-emerald-300 font-mono truncate">{b.ip}</span>
+                      <span className="text-[9px] text-emerald-700">{new Date(b.created_at).toLocaleString()}</span>
+                    </div>
+                    <button
+                      onClick={() => handleIpAction(b.ip, "unban")}
+                      disabled={isPending}
+                      className="flex items-center justify-center gap-1 bg-emerald-900/30 hover:bg-emerald-900/60 border border-emerald-500/30 text-emerald-300 text-[10px] py-1 px-2 rounded transition-all disabled:opacity-50 whitespace-nowrap"
+                    >
+                      <ShieldOff className="h-3 w-3" /> {isPending ? "..." : "UNBAN"}
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
         {/* Live Server Audit - Kattalashtirildi (h-80) */}
-        <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl flex flex-col justify-between">
+        <div className="lg:col-span-1 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl flex flex-col justify-between">
           <div>
             <div className="mb-4 flex items-center gap-2">
               <Terminal className="h-4 w-4 text-emerald-400" />
