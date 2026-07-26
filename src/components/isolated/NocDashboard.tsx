@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin } from "lucide-react";
+import { Activity, ShieldAlert, Server, Wifi, Cpu, HardDrive, Lock, Eye, Shield, Globe, Terminal, MapPin, Play } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 
 type ToggleState = "loading" | "saving" | "idle";
@@ -37,7 +37,8 @@ export function NocDashboard() {
   const [matrixEnabled, setMatrixEnabled] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [toggleState, setToggleState] = useState<ToggleState>("loading");
-  const [error, setError] = useState<string | null>(null);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [execMessage, setExecMessage] = useState<string | null>(null);
 
   const [traffic, setTraffic] = useState<TrafficPoint[]>([]);
   const [totalViews, setTotalViews] = useState(0);
@@ -49,6 +50,38 @@ export function NocDashboard() {
   });
 
   const rawViewsRef = useRef<{ created_at: string }[]>([]);
+
+  const fetchMetricsAndLogs = async () => {
+    try {
+      const response = await fetch(`/metrics.json?t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        setMetrics({
+          cpu_usage: data.cpu_usage || 0,
+          disk_usage: data.disk_usage || 0,
+          ram_usage: data.ram_usage || 0,
+          uptime_str: data.uptime_str || "—",
+          banned_ips: data.banned_ips || "0",
+          ssl_days: data.ssl_days || "0",
+          nginx_up: data.nginx_up !== undefined ? data.nginx_up : true,
+          ssh_up: data.ssh_up !== undefined ? data.ssh_up : true,
+          geo_traffic: data.geo_traffic || [],
+        });
+      }
+    } catch (err) {
+      console.error("metrics.json xatosi:", err);
+    }
+
+    try {
+      const logResponse = await fetch(`/audit_log.txt?t=${Date.now()}`);
+      if (logResponse.ok) {
+        const logText = await logResponse.text();
+        setAuditLog(logText);
+      }
+    } catch (err) {
+      console.error("audit_log.txt xatosi:", err);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -87,38 +120,6 @@ export function NocDashboard() {
   }, []);
 
   useEffect(() => {
-    const fetchMetricsAndLogs = async () => {
-      try {
-        const response = await fetch(`/metrics.json?t=${Date.now()}`);
-        if (response.ok) {
-          const data = await response.json();
-          setMetrics({
-            cpu_usage: data.cpu_usage || 0,
-            disk_usage: data.disk_usage || 0,
-            ram_usage: data.ram_usage || 0,
-            uptime_str: data.uptime_str || "—",
-            banned_ips: data.banned_ips || "0",
-            ssl_days: data.ssl_days || "0",
-            nginx_up: data.nginx_up !== undefined ? data.nginx_up : true,
-            ssh_up: data.ssh_up !== undefined ? data.ssh_up : true,
-            geo_traffic: data.geo_traffic || [],
-          });
-        }
-      } catch (err) {
-        console.error("metrics.json xatosi:", err);
-      }
-
-      try {
-        const logResponse = await fetch(`/audit_log.txt?t=${Date.now()}`);
-        if (logResponse.ok) {
-          const logText = await logResponse.text();
-          setAuditLog(logText);
-        }
-      } catch (err) {
-        console.error("audit_log.txt xatosi:", err);
-      }
-    };
-
     fetchMetricsAndLogs();
     const interval = setInterval(fetchMetricsAndLogs, 10000);
     return () => clearInterval(interval);
@@ -126,14 +127,31 @@ export function NocDashboard() {
 
   const updateSetting = async (field: "matrix_enabled" | "maintenance_mode", value: boolean) => {
     setToggleState("saving");
-    setError(null);
     const { error: err } = await supabase.from("settings").update({ [field]: value }).eq("id", SETTINGS_ID);
-    if (err) setError(err.message);
-    else {
+    if (!err) {
       if (field === "matrix_enabled") setMatrixEnabled(value);
       if (field === "maintenance_mode") setMaintenanceMode(value);
     }
     setToggleState("idle");
+  };
+
+  const handleRunMonitorNow = async () => {
+    setIsExecuting(true);
+    setExecMessage(null);
+    try {
+      const res = await fetch("/api/run-monitor", { method: "POST" });
+      if (res.ok) {
+        setExecMessage("Skript muvaffaqiyatli bajarildi!");
+        await fetchMetricsAndLogs();
+      } else {
+        setExecMessage("Xatolik yuz berdi!");
+      }
+    } catch (err) {
+      setExecMessage("Server bilan aloqa yo'q!");
+    } finally {
+      setIsExecuting(false);
+      setTimeout(() => setExecMessage(null), 3000);
+    }
   };
 
   const maxTraffic = Math.max(1, ...traffic.map((p) => p.count));
@@ -198,18 +216,31 @@ export function NocDashboard() {
           )}
         </div>
 
-        <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
-          <div className="mb-4 flex items-center gap-2">
-            <Lock className="h-4 w-4 text-emerald-400" />
-            <h2 className="text-sm font-semibold text-emerald-300">SITE CONTROLS</h2>
+        <div className="rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 flex flex-col justify-between">
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Lock className="h-4 w-4 text-emerald-400" />
+              <h2 className="text-sm font-semibold text-emerald-300">SITE CONTROLS</h2>
+            </div>
+            <ToggleRow label="Matrix Background" description="Animated digital rain" enabled={matrixEnabled} disabled={toggleState !== "idle"} onToggle={() => updateSetting("matrix_enabled", !matrixEnabled)} />
+            <div className="my-4 h-px bg-emerald-500/10" />
+            <ToggleRow label="Maintenance Mode" description="Take site offline" enabled={maintenanceMode} disabled={toggleState !== "idle"} onToggle={() => updateSetting("maintenance_mode", !maintenanceMode)} />
           </div>
-          <ToggleRow label="Matrix Background" description="Animated digital rain" enabled={matrixEnabled} disabled={toggleState !== "idle"} onToggle={() => updateSetting("matrix_enabled", !matrixEnabled)} />
-          <div className="my-4 h-px bg-emerald-500/10" />
-          <ToggleRow label="Maintenance Mode" description="Take site offline" enabled={maintenanceMode} disabled={toggleState !== "idle"} onToggle={() => updateSetting("maintenance_mode", !maintenanceMode)} />
+
+          <div className="mt-4 pt-4 border-t border-emerald-500/10">
+            <button
+              onClick={handleRunMonitorNow}
+              disabled={isExecuting}
+              className="w-full flex items-center justify-center gap-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 text-xs font-bold py-2.5 px-4 rounded-lg transition-all disabled:opacity-50"
+            >
+              <Play className={`h-3.5 w-3.5 ${isExecuting ? "animate-spin" : ""}`} />
+              {isExecuting ? "RUNNING MONITOR..." : "⚡ RUN MONITOR NOW"}
+            </button>
+            {execMessage && <p className="text-[10px] text-center text-emerald-400 mt-2">{execMessage}</p>}
+          </div>
         </div>
       </div>
 
-      {/* REAL GEOIP TRAFFIC RADAR */}
       <div className="grid lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-1 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5">
           <div className="mb-4 flex items-center gap-2">
@@ -233,7 +264,6 @@ export function NocDashboard() {
           )}
         </div>
 
-        {/* JONLI SERVER AUDIT TERMINALI */}
         <div className="lg:col-span-2 rounded-xl border border-emerald-500/20 bg-black/60 backdrop-blur-md p-5 shadow-2xl">
           <div className="mb-4 flex items-center gap-2">
             <Terminal className="h-4 w-4 text-emerald-400" />
