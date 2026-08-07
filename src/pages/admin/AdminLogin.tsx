@@ -53,7 +53,7 @@ export function AdminLogin() {
       setAttempts((a) => a + 1);
       setError(sanitizeError(error));
     } else {
-      navigate("/admin/dashboard");
+      navigate("/admin/hero");
     }
   };
 

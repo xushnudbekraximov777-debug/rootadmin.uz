@@ -3,7 +3,6 @@ import { useAuth } from "./lib/auth";
 import { PublicSite } from "./pages/PublicSite";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminLayout } from "./components/admin/AdminLayout";
-import { AdminOverview } from "./pages/admin/AdminOverview";
 import { HeroEditor } from "./pages/admin/HeroEditor";
 import { SkillsManager } from "./pages/admin/SkillsManager";
 import { ExperienceManager } from "./pages/admin/ExperienceManager";
@@ -26,16 +25,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<PublicSite />} />
       <Route path="/admin" element={<AdminLogin />} />
-      <Route
-        path="/admin/dashboard"
-        element={
-          <ProtectedRoute>
-            <AdminLayout>
-              <AdminOverview />
-            </AdminLayout>
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/admin/dashboard" element={<Navigate to="/admin/hero" replace />} />
       <Route
         path="/admin/hero"
         element={

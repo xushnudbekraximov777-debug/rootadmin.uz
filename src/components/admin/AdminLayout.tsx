@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
   User,
   Briefcase,
   GraduationCap,
@@ -19,7 +18,6 @@ import { useAuth } from "../../lib/auth";
 import { cn } from "../../lib/cn";
 
 const navItems = [
-  { to: "/admin/dashboard", label: "Overview", icon: LayoutDashboard },
   { to: "/admin/hero", label: "Hero Editor", icon: User },
   { to: "/admin/experience", label: "Experience", icon: Briefcase },
   { to: "/admin/education", label: "Education & Certs", icon: GraduationCap },
@@ -46,7 +44,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden md:flex w-60 flex-col border-r border-base-800 bg-base-900/50">
         <div className="p-5 border-b border-base-800">
-          <Link to="/admin/dashboard" className="font-mono text-sm font-semibold text-accent glow-text">
+          <Link to="/admin/hero" className="font-mono text-sm font-semibold text-accent glow-text">
             &lt;RaximovAdmin /&gt;
           </Link>
         </div>
@@ -92,7 +90,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       {/* Mobile top bar */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="md:hidden flex items-center justify-between border-b border-base-800 bg-base-900/50 px-4 h-14">
-          <Link to="/admin/dashboard" className="font-mono text-sm font-semibold text-accent">
+          <Link to="/admin/hero" className="font-mono text-sm font-semibold text-accent">
             &lt;Admin /&gt;
           </Link>
           <button onClick={handleSignOut} className="text-slate-400">
