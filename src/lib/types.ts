@@ -108,6 +108,20 @@ export type BannedIp = {
   created_at: string;
 };
 
+export type CtfArticle = {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  difficulty: string;
+  category: string;
+  tags: string[];
+  created_at: string;
+};
+
+export const CTF_DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
+export const CTF_CATEGORIES = ["Web", "Pwn", "Crypto", "Forensics", "Reverse Engineering", "Misc"] as const;
+
 export const SKILL_CATEGORIES = [
   "Routing & Switching",
   "Network Security",
