@@ -30,6 +30,23 @@ export function ContactSection({ email }: { email: string }) {
       setStatus("error");
       setError(error.message);
     } else {
+      try {
+        await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notify-telegram`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            subject: form.subject,
+            message: form.message,
+          }),
+        });
+      } catch {
+        // notification is best-effort; don't block the success state
+      }
       setStatus("sent");
       setForm({ name: "", email: "", subject: "", message: "" });
       setTimeout(() => setStatus("idle"), 4000);
