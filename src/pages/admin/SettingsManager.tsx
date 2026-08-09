@@ -111,6 +111,13 @@ export function SettingsManager() {
                 </button>
               ))}
             </div>
+            <div className="mt-6 flex items-center justify-between p-4 rounded-md border border-base-700 bg-base-900">
+              <div>
+                <p className="text-sm text-slate-200">Matrix Background</p>
+                <p className="text-xs text-slate-500">Animated digital rain effect on the public site</p>
+              </div>
+              <Switch checked={form.matrix_enabled} onChange={(v) => setForm({ ...form, matrix_enabled: v })} />
+            </div>
             <div className="mt-6 flex items-center gap-3">
               <Button onClick={save} disabled={saving}>
                 <Save className="h-4 w-4" />
