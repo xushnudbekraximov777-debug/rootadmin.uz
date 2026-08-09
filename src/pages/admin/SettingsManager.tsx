@@ -111,6 +111,26 @@ export function SettingsManager() {
                 </button>
               ))}
             </div>
+
+            <div className="mt-6">
+              <Label>Custom HEX Color</Label>
+              <div className="mt-2 flex items-center gap-3">
+                <input
+                  type="color"
+                  value={form.accent_color.startsWith("#") ? form.accent_color : ACCENT_COLORS[form.accent_color]?.hex ?? "#22d3ee"}
+                  onChange={(e) => setAccent(e.target.value)}
+                  className="h-10 w-14 cursor-pointer rounded-md border border-base-600 bg-base-900 p-1"
+                />
+                <Input
+                  value={form.accent_color.startsWith("#") ? form.accent_color : ""}
+                  onChange={(e) => setAccent(e.target.value)}
+                  placeholder="#ff003c"
+                  className="font-mono"
+                />
+              </div>
+              <p className="mt-2 text-xs text-slate-500">Enter any HEX code to use a custom accent color across the site.</p>
+            </div>
+
             <div className="mt-6 flex items-center justify-between p-4 rounded-md border border-base-700 bg-base-900">
               <div>
                 <p className="text-sm text-slate-200">Matrix Background</p>
