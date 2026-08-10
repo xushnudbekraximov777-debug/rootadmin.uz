@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-export function MatrixRain() {
+export function MatrixRain({ brightness = 100 }: { brightness?: number }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -53,8 +53,8 @@ export function MatrixRain() {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full opacity-[0.15] pointer-events-none"
-      style={{ zIndex: -1 }}
+      className="fixed inset-0 w-full h-full pointer-events-none"
+      style={{ zIndex: -1, opacity: 0.15 * Math.max(10, Math.min(100, brightness)) / 100 }}
     />
   );
 }

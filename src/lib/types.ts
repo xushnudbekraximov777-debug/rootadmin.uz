@@ -90,6 +90,7 @@ export type Settings = {
   maintenance_mode: boolean;
   open_for_freelance: boolean;
   matrix_enabled: boolean;
+  matrix_brightness: number;
   updated_at: string;
 };
 

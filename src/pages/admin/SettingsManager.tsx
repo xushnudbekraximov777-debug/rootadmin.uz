@@ -20,6 +20,7 @@ const empty: Settings = {
   maintenance_mode: false,
   open_for_freelance: true,
   matrix_enabled: false,
+  matrix_brightness: 100,
   updated_at: "",
 };
 
@@ -138,6 +139,30 @@ export function SettingsManager() {
               </div>
               <Switch checked={form.matrix_enabled} onChange={(v) => setForm({ ...form, matrix_enabled: v })} />
             </div>
+
+            {form.matrix_enabled && (
+              <div className="mt-4 p-4 rounded-md border border-base-700 bg-base-900">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm text-slate-200">Matrix Brightness</p>
+                    <p className="text-xs text-slate-500">Controls the opacity of the digital rain effect</p>
+                  </div>
+                  <span className="font-mono text-sm text-accent">{form.matrix_brightness}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={10}
+                  max={100}
+                  value={form.matrix_brightness}
+                  onChange={(e) => setForm({ ...form, matrix_brightness: Number(e.target.value) })}
+                  className="w-full h-2 cursor-pointer appearance-none rounded-full bg-base-700 accent-accent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:shadow-accent [&::-webkit-slider-thumb]:transition-transform [&::-webkit-slider-thumb]:hover:scale-125 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-accent"
+                />
+                <div className="mt-1 flex justify-between font-mono text-[10px] text-slate-600">
+                  <span>10%</span>
+                  <span>100%</span>
+                </div>
+              </div>
+            )}
             <div className="mt-6 flex items-center gap-3">
               <Button onClick={save} disabled={saving}>
                 <Save className="h-4 w-4" />

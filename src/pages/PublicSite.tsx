@@ -71,7 +71,7 @@ export function PublicSite() {
   return (
     <div className="min-h-screen relative">
       <VisitorTracker />
-      {matrixEnabled && <MatrixRain />}
+      {matrixEnabled && <MatrixRain brightness={settings?.matrix_brightness ?? 100} />}
       <div className="relative z-0">
         <Navbar logo={logoText} cvUrl={profile.cv_url || settings?.resume_url || ""} />
         <Hero profile={profile} />
