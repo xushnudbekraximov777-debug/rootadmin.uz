@@ -123,6 +123,30 @@ export type CtfArticle = {
 export const CTF_DIFFICULTIES = ["Easy", "Medium", "Hard"] as const;
 export const CTF_CATEGORIES = ["Web", "Pwn", "Crypto", "Forensics", "Reverse Engineering", "Misc"] as const;
 
+export type CheatSheet = {
+  id: string;
+  title: string;
+  category: string;
+  description: string | null;
+  content: string;
+  tags: string[];
+  is_private: boolean;
+  created_at: string;
+};
+
+export const CHEATSHEET_CATEGORIES = [
+  "Linux",
+  "Networking",
+  "Security",
+  "Docker",
+  "Kubernetes",
+  "Databases",
+  "Cloud",
+  "Shell Scripting",
+  "Monitoring",
+  "Misc",
+] as const;
+
 export const SKILL_CATEGORIES = [
   "Routing & Switching",
   "Network Security",

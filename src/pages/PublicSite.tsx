@@ -15,6 +15,7 @@ import { VisitorTracker } from "../components/isolated/VisitorTracker";
 import { InteractiveTerminal } from "../components/isolated/InteractiveTerminal";
 import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
 import { CTFArticlesSection } from "../components/public/CTFArticlesSection";
+import { CheatSheetsSection } from "../components/public/CheatSheetsSection";
 
 export function PublicSite() {
   const { t } = useTranslation();
@@ -88,6 +89,9 @@ export function PublicSite() {
 
         {/* CTF writeups & security notes */}
         <CTFArticlesSection />
+
+        {/* Knowledge base & cheat sheets */}
+        <CheatSheetsSection />
 
         {/* Interactive terminal */}
         <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16">

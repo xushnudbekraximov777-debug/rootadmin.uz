@@ -13,6 +13,7 @@ import { SettingsManager } from "./pages/admin/SettingsManager";
 import { AdminsManager } from "./pages/admin/AdminsManager";
 import { InfraProjectsManager } from "./pages/admin/InfraProjectsManager";
 import { CTFArticlesManager } from "./pages/admin/CTFArticlesManager";
+import { CheatSheetsManager } from "./pages/admin/CheatSheetsManager";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -123,6 +124,16 @@ export default function App() {
           <ProtectedRoute>
             <AdminLayout>
               <CTFArticlesManager />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/cheatsheets"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <CheatSheetsManager />
             </AdminLayout>
           </ProtectedRoute>
         }
