@@ -1,6 +1,9 @@
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAuth } from "./lib/auth";
 import { PublicSite } from "./pages/PublicSite";
+import { PublicSiteV2 } from "./pages/PublicSiteV2";
+import { supabase, SETTINGS_ID } from "./lib/supabase";
 import { AdminLogin } from "./pages/admin/AdminLogin";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { HeroEditor } from "./pages/admin/HeroEditor";
@@ -23,9 +26,22 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const [uiVersion, setUiVersion] = useState<string>("legacy");
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("settings")
+        .select("ui_version")
+        .eq("id", SETTINGS_ID)
+        .maybeSingle();
+      if (data?.ui_version) setUiVersion(data.ui_version);
+    })();
+  }, []);
+
   return (
     <Routes>
-      <Route path="/" element={<PublicSite />} />
+      <Route path="/" element={uiVersion === "modern" ? <PublicSiteV2 /> : <PublicSite />} />
       <Route path="/admin" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/hero" replace />} />
       <Route

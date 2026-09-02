@@ -91,6 +91,7 @@ export type Settings = {
   open_for_freelance: boolean;
   matrix_enabled: boolean;
   matrix_brightness: number;
+  ui_version: string;
   updated_at: string;
 };
 

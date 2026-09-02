@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, Save, CheckCircle2, Palette, Search, FileText, Shield, KeyRound } from "lucide-react";
+import { Settings as SettingsIcon, Save, CheckCircle2, Palette, Search, FileText, Shield, KeyRound, Sparkles } from "lucide-react";
 import { supabase, SETTINGS_ID } from "../../lib/supabase";
 import type { Settings } from "../../lib/types";
 import { ACCENT_COLORS } from "../../lib/types";
@@ -21,6 +21,7 @@ const empty: Settings = {
   open_for_freelance: true,
   matrix_enabled: false,
   matrix_brightness: 100,
+  ui_version: "legacy",
   updated_at: "",
 };
 
@@ -91,7 +92,47 @@ export function SettingsManager() {
       />
 
       {active === "theme" && (
+        <>
         <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-accent" />
+              Public UI Version
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-md border border-base-700 bg-base-900">
+              <div>
+                <p className="text-sm text-slate-200">Public UI Version</p>
+                <p className="text-xs text-slate-500">Switch between the classic and futuristic 2026 cybersecurity design</p>
+              </div>
+              <div className="flex rounded-lg border border-base-600 bg-base-950 p-1">
+                <button
+                  onClick={() => setForm({ ...form, ui_version: "legacy" })}
+                  className={`rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
+                    form.ui_version !== "modern"
+                      ? "bg-accent/15 text-accent shadow-accent"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  Legacy
+                </button>
+                <button
+                  onClick={() => setForm({ ...form, ui_version: "modern" })}
+                  className={`rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
+                    form.ui_version === "modern"
+                      ? "bg-accent/15 text-accent shadow-accent"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  Modern
+                </button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-6">
           <CardHeader>
             <CardTitle>Accent Color</CardTitle>
           </CardHeader>
@@ -176,6 +217,7 @@ export function SettingsManager() {
             </div>
           </CardContent>
         </Card>
+        </>
       )}
 
       {active === "seo" && (
