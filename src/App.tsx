@@ -41,7 +41,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={uiVersion === "modern" ? <PublicSiteV2 /> : <PublicSite />} />
+      <Route path="/" element={uiVersion === "v2_scifi" ? <PublicSiteV2 /> : <PublicSite />} />
       <Route path="/admin" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/hero" replace />} />
       <Route

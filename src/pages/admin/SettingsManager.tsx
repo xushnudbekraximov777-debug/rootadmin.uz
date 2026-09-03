@@ -103,14 +103,14 @@ export function SettingsManager() {
           <CardContent>
             <div className="flex items-center justify-between p-4 rounded-md border border-base-700 bg-base-900">
               <div>
-                <p className="text-sm text-slate-200">Public UI Version</p>
-                <p className="text-xs text-slate-500">Switch between the classic and futuristic 2026 cybersecurity design</p>
+                <p className="text-sm text-slate-200">Active Public UI</p>
+                <p className="text-xs text-slate-500">Switch between the classic design and the Sci-Fi HUD / Holographic Command Center</p>
               </div>
               <div className="flex rounded-lg border border-base-600 bg-base-950 p-1">
                 <button
                   onClick={() => setForm({ ...form, ui_version: "legacy" })}
                   className={`rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
-                    form.ui_version !== "modern"
+                    form.ui_version !== "v2_scifi"
                       ? "bg-accent/15 text-accent shadow-accent"
                       : "text-slate-500 hover:text-slate-300"
                   }`}
@@ -118,14 +118,14 @@ export function SettingsManager() {
                   Legacy
                 </button>
                 <button
-                  onClick={() => setForm({ ...form, ui_version: "modern" })}
+                  onClick={() => setForm({ ...form, ui_version: "v2_scifi" })}
                   className={`rounded-md px-4 py-1.5 text-xs font-medium transition-all ${
-                    form.ui_version === "modern"
+                    form.ui_version === "v2_scifi"
                       ? "bg-accent/15 text-accent shadow-accent"
                       : "text-slate-500 hover:text-slate-300"
                   }`}
                 >
-                  Modern
+                  Sci-Fi HUD
                 </button>
               </div>
             </div>

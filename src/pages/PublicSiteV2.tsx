@@ -17,6 +17,8 @@ import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
 import { CTFArticlesSection } from "../components/public/CTFArticlesSection";
 import { CheatSheetsSection } from "../components/public/CheatSheetsSection";
 
+const HUD_BG = "#050B14";
+
 export function PublicSiteV2() {
   const { t } = useTranslation();
   const { profile, experiences, education, certifications, skills, projects, settings, loading } =
@@ -36,7 +38,7 @@ export function PublicSiteV2() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "#070707" }}>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: HUD_BG }}>
         <div className="font-mono text-accent animate-pulse">{t("site.booting")}</div>
       </div>
     );
@@ -44,7 +46,7 @@ export function PublicSiteV2() {
 
   if (settings?.maintenance_mode) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#070707" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: HUD_BG }}>
         <div className="text-center">
           <div className="font-mono text-2xl text-accent mb-2">{t("site.maintenance")}</div>
           <p className="text-slate-500">{t("site.maintenanceMsg")}</p>
@@ -58,7 +60,7 @@ export function PublicSiteV2() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "#070707" }}>
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: HUD_BG }}>
         <div className="text-center">
           <p className="text-slate-500 font-mono">{t("site.noProfile")}</p>
         </div>
@@ -70,7 +72,7 @@ export function PublicSiteV2() {
   const matrixEnabled = Boolean(settings?.matrix_enabled);
 
   return (
-    <div className="min-h-screen relative" style={{ background: "#070707" }}>
+    <div className="min-h-screen relative" style={{ background: HUD_BG }}>
       <VisitorTracker />
       {matrixEnabled && <MatrixRain brightness={settings?.matrix_brightness ?? 100} />}
       <div className="relative z-0">

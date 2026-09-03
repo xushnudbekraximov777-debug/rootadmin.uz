@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
-import { Briefcase, GraduationCap, Award, Calendar } from "lucide-react";
+import { Briefcase, GraduationCap, Award, Calendar, ShieldCheck } from "lucide-react";
 import type { Experience, Education, Certification } from "../../lib/types";
 import { formatDateRange } from "../../lib/utils";
+
+const HUD_BG = "#050B14";
 
 export function ExperienceV2({
   experiences,
@@ -14,7 +16,7 @@ export function ExperienceV2({
 }) {
   return (
     <section id="experience" className="mx-auto max-w-6xl px-4 sm:px-6 py-24">
-      <div className="grid lg:grid-cols-2 gap-10">
+      <div className="grid lg:grid-cols-2 gap-8">
         {/* Experience */}
         <div id="about">
           <SectionHeaderV2 icon={<Briefcase className="h-5 w-5" />} title="Experience" />
@@ -27,9 +29,11 @@ export function ExperienceV2({
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
                 whileHover={{ scale: 1.02 }}
-                className="relative rounded-xl border border-base-800 p-5 transition-all hover:border-accent/30"
-                style={{ background: "rgba(255 255 255 / 0.02)", backdropFilter: "blur(12px)" }}
+                className="relative rounded-xl border border-accent/15 p-5 transition-all hover:border-accent/40"
+                style={{ background: "rgba(var(--accent) / 0.02)", backdropFilter: "blur(16px)" }}
               >
+                {/* Holographic corner accent */}
+                <div className="absolute top-0 left-0 h-8 w-8 border-l border-t border-accent/40 rounded-tl-xl" />
                 <div className="flex items-start justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-base font-semibold text-slate-100">{exp.role}</h3>
                   <span className="inline-flex items-center gap-1 font-mono text-xs text-accent">
@@ -37,7 +41,7 @@ export function ExperienceV2({
                     {formatDateRange(exp.start_date, exp.end_date, exp.current)}
                   </span>
                 </div>
-                <p className="text-sm text-accent/80 font-mono mb-2">{exp.company}</p>
+                <p className="text-sm text-accent/70 font-mono mb-2">{exp.company}</p>
                 <p className="text-sm text-slate-500 leading-relaxed">{exp.description}</p>
               </motion.div>
             ))}
@@ -57,20 +61,19 @@ export function ExperienceV2({
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
                 whileHover={{ scale: 1.02 }}
-                className="rounded-xl border border-base-800 p-5 transition-all hover:border-accent/30"
-                style={{ background: "rgba(255 255 255 / 0.02)", backdropFilter: "blur(12px)" }}
+                className="relative rounded-xl border border-accent/15 p-5 transition-all hover:border-accent/40"
+                style={{ background: "rgba(var(--accent) / 0.02)", backdropFilter: "blur(16px)" }}
               >
+                <div className="absolute top-0 right-0 h-8 w-8 border-r border-t border-accent/40 rounded-tr-xl" />
                 <div className="flex items-start justify-between flex-wrap gap-2 mb-2">
                   <h3 className="text-base font-semibold text-slate-100">{ed.degree}</h3>
                   <span className="font-mono text-xs text-accent">
                     {ed.start_year} — {ed.end_year || "Present"}
                   </span>
                 </div>
-                <p className="text-sm text-accent/80 font-mono">{ed.institution}</p>
+                <p className="text-sm text-accent/70 font-mono">{ed.institution}</p>
                 {ed.field && <p className="text-sm text-slate-500 mt-1 font-mono">{ed.field}</p>}
-                {ed.description && (
-                  <p className="text-sm text-slate-500 mt-2 leading-relaxed">{ed.description}</p>
-                )}
+                {ed.description && <p className="text-sm text-slate-500 mt-2 leading-relaxed">{ed.description}</p>}
               </motion.div>
             ))}
             {education.length === 0 && <EmptyV2 text="No education entries yet." />}
@@ -87,18 +90,13 @@ export function ExperienceV2({
                   viewport={{ once: true }}
                   transition={{ duration: 0.3, delay: i * 0.06 }}
                   whileHover={{ y: -3 }}
-                  className="rounded-lg border border-base-800 p-4 transition-all hover:border-accent/30"
-                  style={{ background: "rgba(255 255 255 / 0.02)", backdropFilter: "blur(12px)" }}
+                  className="rounded-lg border border-accent/15 p-4 transition-all hover:border-accent/40"
+                  style={{ background: "rgba(var(--accent) / 0.02)", backdropFilter: "blur(16px)" }}
                 >
                   <h3 className="text-sm font-semibold text-slate-100">
                     {c.name}
                     {c.credential_url && (
-                      <a
-                        href={c.credential_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="ml-2 text-xs text-accent hover:underline"
-                      >
+                      <a href={c.credential_url} target="_blank" rel="noreferrer" className="ml-2 text-xs text-accent hover:underline">
                         verify
                       </a>
                     )}
@@ -121,7 +119,7 @@ function SectionHeaderV2({ icon, title }: { icon: React.ReactNode; title: string
     <div className="mb-6 flex items-center gap-3">
       <span className="text-accent">{icon}</span>
       <h2 className="text-2xl font-bold text-slate-100">{title}</h2>
-      <span className="ml-2 h-px flex-1 bg-gradient-to-r from-base-700 to-transparent" />
+      <span className="ml-2 h-px flex-1 bg-gradient-to-r from-accent/30 to-transparent" />
     </div>
   );
 }

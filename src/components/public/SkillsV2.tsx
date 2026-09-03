@@ -19,7 +19,7 @@ export function SkillsV2({ skills }: { skills: Skill[] }) {
           <Cpu className="h-5 w-5" />
         </span>
         <h2 className="text-2xl font-bold text-slate-100">Skills</h2>
-        <span className="ml-2 h-px flex-1 bg-gradient-to-r from-base-700 to-transparent" />
+        <span className="ml-2 h-px flex-1 bg-gradient-to-r from-accent/30 to-transparent" />
       </div>
 
       {/* Bento-box grid */}
@@ -35,9 +35,13 @@ export function SkillsV2({ skills }: { skills: Skill[] }) {
               viewport={{ once: true }}
               transition={{ duration: 0.4, delay: ci * 0.08 }}
               whileHover={{ y: -4 }}
-              className={`rounded-2xl border border-base-800 p-6 transition-all hover:border-accent/30 ${isWide ? "sm:col-span-2 lg:col-span-1" : ""}`}
-              style={{ background: "rgba(255 255 255 / 0.02)", backdropFilter: "blur(16px)" }}
+              className={`group relative rounded-2xl border border-accent/15 p-6 transition-all hover:border-accent/40 ${isWide ? "sm:col-span-2 lg:col-span-1" : ""}`}
+              style={{ background: "rgba(var(--accent) / 0.02)", backdropFilter: "blur(16px)" }}
             >
+              {/* Holographic corner accents */}
+              <div className="absolute top-0 left-0 h-6 w-6 border-l border-t border-accent/30 rounded-tl-2xl" />
+              <div className="absolute bottom-0 right-0 h-6 w-6 border-r border-b border-accent/30 rounded-br-2xl" />
+
               <div className="mb-4 flex items-center gap-2 text-accent">
                 {categoryIcons[cat] ?? <Cpu className="h-5 w-5" />}
                 <h3 className="text-sm font-semibold text-slate-100 uppercase tracking-wider">{cat}</h3>
@@ -52,11 +56,11 @@ export function SkillsV2({ skills }: { skills: Skill[] }) {
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.2, delay: i * 0.03 }}
-                    className="group relative rounded-lg border border-base-700 px-3 py-1.5 text-xs font-mono text-slate-300 transition-all hover:border-accent/50 hover:text-accent cursor-default"
-                    style={{ background: "rgba(255 255 255 / 0.03)" }}
+                    className="group/chip relative rounded-lg border border-accent/20 px-3 py-1.5 text-xs font-mono text-slate-300 transition-all hover:border-accent/60 hover:text-accent cursor-default"
+                    style={{ background: "rgba(var(--accent) / 0.04)" }}
                   >
                     {s.name}
-                    <span className="absolute -bottom-px left-0 right-0 h-px bg-accent/40 rounded-full origin-left scale-x-0 group-hover:scale-x-100 transition-transform" />
+                    <span className="absolute -bottom-px left-0 right-0 h-px bg-accent/50 rounded-full origin-left scale-x-0 group-hover/chip:scale-x-100 transition-transform" />
                   </motion.span>
                 ))}
               </div>
@@ -68,7 +72,7 @@ export function SkillsV2({ skills }: { skills: Skill[] }) {
                     <div key={s.id}>
                       <div className="flex justify-between text-[11px] text-slate-500 mb-1">
                         <span>{s.name}</span>
-                        <span className="font-mono text-accent/80">{s.proficiency}%</span>
+                        <span className="font-mono text-accent/70">{s.proficiency}%</span>
                       </div>
                       <div className="h-1 rounded-full bg-base-800 overflow-hidden">
                         <motion.div

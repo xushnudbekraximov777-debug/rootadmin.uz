@@ -1,33 +1,41 @@
 import { motion } from "framer-motion";
-import { MapPin, Mail, Phone, Send, FolderGit2, ArrowRight, Github, Linkedin, Terminal } from "lucide-react";
+import { MapPin, Mail, Phone, Send, FolderGit2, ArrowRight, Github, Linkedin, Terminal, ShieldCheck, Activity } from "lucide-react";
 import type { Profile, Settings } from "../../lib/types";
+
+const HUD_BG = "#050B14";
 
 export function HeroV2({ profile, settings }: { profile: Profile; settings: Settings | null }) {
   return (
     <section
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-16"
-      style={{ background: "radial-gradient(ellipse at 50% 0%, rgba(var(--accent) / 0.08), transparent 60%), #070707" }}
+      style={{ background: `radial-gradient(ellipse at 50% 0%, rgba(var(--accent) / 0.06), transparent 60%), ${HUD_BG}` }}
     >
-      {/* Grid overlay */}
+      {/* HUD grid overlay */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage: "linear-gradient(rgba(var(--accent) / 1) 1px, transparent 1px), linear-gradient(90deg, rgba(var(--accent) / 1) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
+          backgroundSize: "56px 56px",
         }}
       />
 
-      {/* Scanline */}
+      {/* Holographic scanline */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
           initial={{ y: "-20%" }}
           animate={{ y: "120%" }}
-          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-x-0 h-40"
-          style={{ background: "linear-gradient(to bottom, transparent, rgba(var(--accent) / 0.04), transparent)" }}
+          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-x-0 h-48"
+          style={{ background: "linear-gradient(to bottom, transparent, rgba(var(--accent) / 0.03), transparent)" }}
         />
       </div>
+
+      {/* Corner HUD brackets */}
+      <div className="pointer-events-none absolute top-20 left-6 h-12 w-12 border-l-2 border-t-2 border-accent/30 rounded-tl-lg" />
+      <div className="pointer-events-none absolute top-20 right-6 h-12 w-12 border-r-2 border-t-2 border-accent/30 rounded-tr-lg" />
+      <div className="pointer-events-none absolute bottom-20 left-6 h-12 w-12 border-l-2 border-b-2 border-accent/30 rounded-bl-lg" />
+      <div className="pointer-events-none absolute bottom-20 right-6 h-12 w-12 border-r-2 border-b-2 border-accent/30 rounded-br-lg" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-4 sm:px-6 text-center">
         {/* Status badge */}
@@ -36,7 +44,7 @@ export function HeroV2({ profile, settings }: { profile: Profile; settings: Sett
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
           className="inline-flex items-center gap-2 rounded-full border border-accent/30 px-4 py-1.5 text-xs font-mono text-accent mb-8"
-          style={{ background: "rgba(var(--accent) / 0.08)", backdropFilter: "blur(12px)" }}
+          style={{ background: "rgba(var(--accent) / 0.06)", backdropFilter: "blur(16px)" }}
         >
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-75" />
@@ -45,13 +53,13 @@ export function HeroV2({ profile, settings }: { profile: Profile; settings: Sett
           {profile.status}
         </motion.div>
 
-        {/* Name with glitch effect */}
+        {/* Name with holographic glow */}
         <motion.h1
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, delay: 0.1 }}
           className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight text-slate-50 leading-tight"
-          style={{ textShadow: "0 0 40px rgba(var(--accent) / 0.15)" }}
+          style={{ textShadow: "0 0 40px rgba(var(--accent) / 0.12)" }}
         >
           {profile.name}
         </motion.h1>
@@ -107,7 +115,7 @@ export function HeroV2({ profile, settings }: { profile: Profile; settings: Sett
           <a
             href="#projects"
             className="group inline-flex items-center gap-2 rounded-lg border border-accent/40 px-6 py-3 text-sm font-medium text-accent transition-all hover:scale-105"
-            style={{ background: "rgba(var(--accent) / 0.1)", backdropFilter: "blur(12px)", boxShadow: "0 0 20px rgba(var(--accent) / 0.1)" }}
+            style={{ background: "rgba(var(--accent) / 0.08)", backdropFilter: "blur(16px)", boxShadow: "0 0 24px rgba(var(--accent) / 0.08)" }}
           >
             <FolderGit2 className="h-4 w-4" />
             View Projects
@@ -116,7 +124,7 @@ export function HeroV2({ profile, settings }: { profile: Profile; settings: Sett
           <a
             href="#contact"
             className="inline-flex items-center gap-2 rounded-lg border border-base-700 px-6 py-3 text-sm font-medium text-slate-200 transition-all hover:border-accent/50 hover:text-accent"
-            style={{ background: "rgba(255 255 255 / 0.03)", backdropFilter: "blur(12px)" }}
+            style={{ background: "rgba(255 255 255 / 0.02)", backdropFilter: "blur(16px)" }}
           >
             <Send className="h-4 w-4" />
             Contact Me
@@ -131,57 +139,46 @@ export function HeroV2({ profile, settings }: { profile: Profile; settings: Sett
           className="mt-8 flex items-center justify-center gap-6"
         >
           {profile.github_url && (
-            <a
-              href={profile.github_url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-600 hover:text-accent transition-colors"
-            >
+            <a href={profile.github_url} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-accent transition-colors">
               <Github className="h-5 w-5" />
             </a>
           )}
           {profile.linkedin_url && (
-            <a
-              href={profile.linkedin_url}
-              target="_blank"
-              rel="noreferrer"
-              className="text-slate-600 hover:text-accent transition-colors"
-            >
+            <a href={profile.linkedin_url} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-accent transition-colors">
               <Linkedin className="h-5 w-5" />
             </a>
           )}
-          <a
-            href={`https://t.me/${profile.telegram.replace("@", "")}`}
-            target="_blank"
-            rel="noreferrer"
-            className="text-slate-600 hover:text-accent transition-colors"
-          >
+          <a href={`https://t.me/${profile.telegram.replace("@", "")}`} target="_blank" rel="noreferrer" className="text-slate-600 hover:text-accent transition-colors">
             <Send className="h-5 w-5" />
           </a>
-          <a
-            href={`mailto:${profile.email}`}
-            className="text-slate-600 hover:text-accent transition-colors"
-          >
+          <a href={`mailto:${profile.email}`} className="text-slate-600 hover:text-accent transition-colors">
             <Mail className="h-5 w-5" />
           </a>
         </motion.div>
 
-        {/* Terminal hint */}
+        {/* HUD system info strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.8 }}
-          className="mt-12 inline-flex items-center gap-2 text-xs font-mono text-slate-700"
+          className="mt-12 flex items-center justify-center gap-6 text-[10px] font-mono text-slate-700 uppercase tracking-widest"
         >
-          <Terminal className="h-3.5 w-3.5" />
-          <span>scroll down to explore</span>
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck className="h-3 w-3" />
+            System Secure
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Activity className="h-3 w-3" />
+            All Systems Operational
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Terminal className="h-3 w-3" />
+            Scroll to Explore
+          </span>
         </motion.div>
       </div>
 
-      <a
-        href="#about"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-700 hover:text-accent transition-colors"
-      >
+      <a href="#about" className="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-700 hover:text-accent transition-colors">
         <ArrowRight className="h-5 w-5 rotate-90 animate-bounce" />
       </a>
     </section>
