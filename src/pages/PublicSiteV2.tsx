@@ -7,12 +7,10 @@ import { HeroV2 } from "../components/public/HeroV2";
 import { ExperienceV2 } from "../components/public/ExperienceV2";
 import { SkillsV2 } from "../components/public/SkillsV2";
 import { ProjectsV2 } from "../components/public/ProjectsV2";
-import { TerminalWidget } from "../components/public/Terminal";
 import { ContactSection } from "../components/public/Contact";
 import { Footer } from "../components/public/Footer";
 import { MatrixRain } from "../components/isolated/MatrixRain";
 import { VisitorTracker } from "../components/isolated/VisitorTracker";
-import { InteractiveTerminal } from "../components/isolated/InteractiveTerminal";
 import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
 import { CTFArticlesSection } from "../components/public/CTFArticlesSection";
 import { CheatSheetsSection } from "../components/public/CheatSheetsSection";
@@ -94,23 +92,6 @@ export function PublicSiteV2() {
 
         {/* Knowledge base & cheat sheets */}
         <CheatSheetsSection />
-
-        {/* Interactive terminal */}
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 py-24">
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold text-slate-100">
-              Interactive <span className="text-accent">Terminal</span>
-            </h2>
-            <p className="mt-2 text-sm text-slate-400">
-              Type a command to explore. Try <span className="font-mono text-accent">whoami</span>,{" "}
-              <span className="font-mono text-accent">skills</span>, or{" "}
-              <span className="font-mono text-accent">projects</span>.
-            </p>
-          </div>
-          <InteractiveTerminal />
-        </section>
-
-        <TerminalWidget />
 
         <ContactSection email={profile.email} />
         <Footer logo={logoText} />
