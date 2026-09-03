@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Flag,
   BookOpen,
+  FlaskConical,
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { cn } from "../../lib/cn";
@@ -28,6 +29,7 @@ const navItems = [
   { to: "/admin/infra", label: "Infra Projects", icon: Network },
   { to: "/admin/ctf", label: "CTF Writeups", icon: Flag },
   { to: "/admin/cheatsheets", label: "Knowledge Base", icon: BookOpen },
+  { to: "/admin/lab-manuals", label: "Lab Manuals", icon: FlaskConical },
   { to: "/admin/messages", label: "Inbox", icon: Mail },
   { to: "/admin/admins", label: "Manage Admins", icon: ShieldCheck },
   { to: "/admin/settings", label: "Settings", icon: Settings },

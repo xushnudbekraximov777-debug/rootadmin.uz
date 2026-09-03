@@ -17,6 +17,9 @@ import { AdminsManager } from "./pages/admin/AdminsManager";
 import { InfraProjectsManager } from "./pages/admin/InfraProjectsManager";
 import { CTFArticlesManager } from "./pages/admin/CTFArticlesManager";
 import { CheatSheetsManager } from "./pages/admin/CheatSheetsManager";
+import { LabManualsManager } from "./pages/admin/LabManualsManager";
+import { LabManualsV2 } from "./components/public/LabManualsV2";
+import { ManualReaderV2 } from "./components/public/ManualReaderV2";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -42,6 +45,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={uiVersion === "v2_scifi" ? <PublicSiteV2 /> : <PublicSite />} />
+      <Route path="/manuals" element={uiVersion === "v2_scifi" ? <LabManualsV2 /> : <PublicSite />} />
+      <Route path="/manuals/:slug" element={uiVersion === "v2_scifi" ? <ManualReaderV2 /> : <PublicSite />} />
       <Route path="/admin" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/hero" replace />} />
       <Route
@@ -150,6 +155,16 @@ export default function App() {
           <ProtectedRoute>
             <AdminLayout>
               <CheatSheetsManager />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/lab-manuals"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <LabManualsManager />
             </AdminLayout>
           </ProtectedRoute>
         }

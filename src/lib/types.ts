@@ -135,6 +135,27 @@ export type CheatSheet = {
   created_at: string;
 };
 
+export type LabManual = {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  content: string;
+  created_at: string;
+};
+
+export const LAB_MANUAL_CATEGORIES = [
+  "Linux",
+  "Cisco",
+  "AWS",
+  "Security",
+  "Networking",
+  "Docker",
+  "Databases",
+  "Shell Scripting",
+  "Misc",
+] as const;
+
 export const CHEATSHEET_CATEGORIES = [
   "Linux",
   "Networking",

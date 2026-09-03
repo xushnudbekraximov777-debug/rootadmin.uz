@@ -12,14 +12,12 @@ const linkKeys = [
   { href: "#projects", key: "projects" },
   { href: "#contact", key: "contact" },
 ] as const;
-
-const languages = [
   { code: "en", flag: "EN" },
   { code: "uz", flag: "UZ" },
   { code: "ru", flag: "RU" },
 ] as const;
 
-export function Navbar({ logo, cvUrl }: { logo: string; cvUrl: string }) {
+export function Navbar({ logo, cvUrl, showLabManuals }: { logo: string; cvUrl: string; showLabManuals?: boolean }) {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -65,6 +63,14 @@ export function Navbar({ logo, cvUrl }: { logo: string; cvUrl: string }) {
                 {t(`nav.${l.key}`)}
               </a>
             ))}
+            {showLabManuals && (
+              <a
+                href="/manuals"
+                className="text-sm text-slate-400 hover:text-accent transition-colors"
+              >
+                Lab Manuals
+              </a>
+            )}
             {cvUrl && (
               <a
                 href={cvUrl}
@@ -161,6 +167,15 @@ export function Navbar({ logo, cvUrl }: { logo: string; cvUrl: string }) {
               {t(`nav.${l.key}`)}
             </a>
           ))}
+          {showLabManuals && (
+            <a
+              href="/manuals"
+              onClick={() => setOpen(false)}
+              className="block text-sm text-slate-400 hover:text-accent py-1"
+            >
+              Lab Manuals
+            </a>
+          )}
           {cvUrl && (
             <a
               href={cvUrl}
