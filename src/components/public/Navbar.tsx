@@ -12,6 +12,8 @@ const linkKeys = [
   { href: "#projects", key: "projects" },
   { href: "#contact", key: "contact" },
 ] as const;
+
+const languages = [
   { code: "en", flag: "EN" },
   { code: "uz", flag: "UZ" },
   { code: "ru", flag: "RU" },
