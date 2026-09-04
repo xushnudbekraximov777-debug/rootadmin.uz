@@ -51,9 +51,12 @@ export function QuizzesManager() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<Quiz | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
   const [draft, setDraft] = useState<QuizDraft>(emptyDraft);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+
+  const showForm = editing !== null || isCreating;
 
   const load = async () => {
     const { data } = await supabase.from("quizzes").select("*").order("created_at", { ascending: false });
@@ -67,12 +70,14 @@ export function QuizzesManager() {
 
   const startNew = () => {
     setEditing(null);
+    setIsCreating(true);
     setDraft({ ...emptyDraft, questions: [emptyQuestion()] });
     setExpanded(new Set([`q-0`]));
   };
 
   const startEdit = async (q: Quiz) => {
     setEditing(q);
+    setIsCreating(false);
     setSaving(false);
     const { data: questions } = await supabase
       .from("quiz_questions")
@@ -197,6 +202,7 @@ export function QuizzesManager() {
       }
 
       setEditing(null);
+      setIsCreating(false);
       setDraft(emptyDraft);
       await load();
     } finally {
@@ -211,6 +217,7 @@ export function QuizzesManager() {
 
   const cancelEdit = () => {
     setEditing(null);
+    setIsCreating(false);
     setDraft(emptyDraft);
   };
 
@@ -220,7 +227,7 @@ export function QuizzesManager() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-slate-100">Quizzes & Skill Verification</h1>
-        {!editing && (
+        {!showForm && (
           <Button onClick={startNew}>
             <Plus className="h-4 w-4" /> New Quiz
           </Button>
@@ -228,7 +235,7 @@ export function QuizzesManager() {
       </div>
 
       {/* Quiz list */}
-      {!editing && (
+      {!showForm && (
         <>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {quizzes.map((q) => (
@@ -265,7 +272,7 @@ export function QuizzesManager() {
       )}
 
       {/* Quiz builder */}
-      {editing !== null && (
+      {showForm && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold text-slate-100">
