@@ -18,8 +18,11 @@ import { InfraProjectsManager } from "./pages/admin/InfraProjectsManager";
 import { CTFArticlesManager } from "./pages/admin/CTFArticlesManager";
 import { CheatSheetsManager } from "./pages/admin/CheatSheetsManager";
 import { LabManualsManager } from "./pages/admin/LabManualsManager";
+import { QuizzesManager } from "./pages/admin/QuizzesManager";
 import { LabManualsV2 } from "./components/public/LabManualsV2";
 import { ManualReaderV2 } from "./components/public/ManualReaderV2";
+import { QuizzesV2 } from "./components/public/QuizzesV2";
+import { QuizRunnerV2 } from "./components/public/QuizRunnerV2";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading } = useAuth();
@@ -47,6 +50,8 @@ export default function App() {
       <Route path="/" element={uiVersion === "v2_scifi" ? <PublicSiteV2 /> : <PublicSite />} />
       <Route path="/manuals" element={uiVersion === "v2_scifi" ? <LabManualsV2 /> : <PublicSite />} />
       <Route path="/manuals/:slug" element={uiVersion === "v2_scifi" ? <ManualReaderV2 /> : <PublicSite />} />
+      <Route path="/quizzes" element={uiVersion === "v2_scifi" ? <QuizzesV2 /> : <PublicSite />} />
+      <Route path="/quizzes/:id" element={uiVersion === "v2_scifi" ? <QuizRunnerV2 /> : <PublicSite />} />
       <Route path="/admin" element={<AdminLogin />} />
       <Route path="/admin/dashboard" element={<Navigate to="/admin/hero" replace />} />
       <Route
@@ -165,6 +170,16 @@ export default function App() {
           <ProtectedRoute>
             <AdminLayout>
               <LabManualsManager />
+            </AdminLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/quizzes"
+        element={
+          <ProtectedRoute>
+            <AdminLayout>
+              <QuizzesManager />
             </AdminLayout>
           </ProtectedRoute>
         }

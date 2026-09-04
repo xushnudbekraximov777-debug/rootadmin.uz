@@ -19,7 +19,7 @@ const languages = [
   { code: "ru", flag: "RU" },
 ] as const;
 
-export function Navbar({ logo, cvUrl, showLabManuals }: { logo: string; cvUrl: string; showLabManuals?: boolean }) {
+export function Navbar({ logo, cvUrl, showLabManuals, showQuizzes }: { logo: string; cvUrl: string; showLabManuals?: boolean; showQuizzes?: boolean }) {
   const { t, i18n } = useTranslation();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
@@ -71,6 +71,14 @@ export function Navbar({ logo, cvUrl, showLabManuals }: { logo: string; cvUrl: s
                 className="text-sm text-slate-400 hover:text-accent transition-colors"
               >
                 Lab Manuals
+              </a>
+            )}
+            {showQuizzes && (
+              <a
+                href="/quizzes"
+                className="text-sm text-slate-400 hover:text-accent transition-colors"
+              >
+                Skill Quizzes
               </a>
             )}
             {cvUrl && (
@@ -176,6 +184,15 @@ export function Navbar({ logo, cvUrl, showLabManuals }: { logo: string; cvUrl: s
               className="block text-sm text-slate-400 hover:text-accent py-1"
             >
               Lab Manuals
+            </a>
+          )}
+          {showQuizzes && (
+            <a
+              href="/quizzes"
+              onClick={() => setOpen(false)}
+              className="block text-sm text-slate-400 hover:text-accent py-1"
+            >
+              Skill Quizzes
             </a>
           )}
           {cvUrl && (

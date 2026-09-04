@@ -144,6 +144,45 @@ export type LabManual = {
   created_at: string;
 };
 
+export type Quiz = {
+  id: string;
+  title: string;
+  category: string;
+  description: string | null;
+  created_at: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  quiz_id: string;
+  text: string;
+  position: number;
+};
+
+export type QuizOption = {
+  id: string;
+  question_id: string;
+  text: string;
+  is_correct: boolean;
+  position: number;
+};
+
+export type QuizWithDetails = Quiz & {
+  questions: (QuizQuestion & { options: QuizOption[] })[];
+};
+
+export const QUIZ_CATEGORIES = [
+  "Linux",
+  "Cisco",
+  "AWS",
+  "Security",
+  "Networking",
+  "Docker",
+  "Databases",
+  "Shell Scripting",
+  "Misc",
+] as const;
+
 export const LAB_MANUAL_CATEGORIES = [
   "Linux",
   "Cisco",

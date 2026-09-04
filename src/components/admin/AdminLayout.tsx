@@ -16,6 +16,7 @@ import {
   Flag,
   BookOpen,
   FlaskConical,
+  ClipboardList,
 } from "lucide-react";
 import { useAuth } from "../../lib/auth";
 import { cn } from "../../lib/cn";
@@ -30,6 +31,7 @@ const navItems = [
   { to: "/admin/ctf", label: "CTF Writeups", icon: Flag },
   { to: "/admin/cheatsheets", label: "Knowledge Base", icon: BookOpen },
   { to: "/admin/lab-manuals", label: "Lab Manuals", icon: FlaskConical },
+  { to: "/admin/quizzes", label: "Quizzes", icon: ClipboardList },
   { to: "/admin/messages", label: "Inbox", icon: Mail },
   { to: "/admin/admins", label: "Manage Admins", icon: ShieldCheck },
   { to: "/admin/settings", label: "Settings", icon: Settings },

@@ -15,6 +15,7 @@ import { InfraProjectsGrid } from "../components/isolated/InfraProjectsGrid";
 import { CTFArticlesSection } from "../components/public/CTFArticlesSection";
 import { CheatSheetsSection } from "../components/public/CheatSheetsSection";
 import { LabManualsV2 } from "../components/public/LabManualsV2";
+import { QuizzesV2 } from "../components/public/QuizzesV2";
 
 const HUD_BG = "#050B14";
 
@@ -75,7 +76,7 @@ export function PublicSiteV2() {
       <VisitorTracker />
       {matrixEnabled && <MatrixRain brightness={settings?.matrix_brightness ?? 100} />}
       <div className="relative z-0">
-        <Navbar logo={logoText} cvUrl={profile.cv_url || settings?.resume_url || ""} showLabManuals />
+        <Navbar logo={logoText} cvUrl={profile.cv_url || settings?.resume_url || ""} showLabManuals showQuizzes />
         <HeroV2 profile={profile} settings={settings} />
         <ExperienceV2
           experiences={experiences}
@@ -96,6 +97,9 @@ export function PublicSiteV2() {
 
         {/* Lab manuals & tutorials */}
         <LabManualsV2 />
+
+        {/* Skill quizzes */}
+        <QuizzesV2 />
 
         <ContactSection email={profile.email} />
         <Footer logo={logoText} />
