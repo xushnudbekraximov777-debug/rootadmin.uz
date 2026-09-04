@@ -89,8 +89,8 @@ export function ManualReaderV2() {
         <div className="text-center">
           <FlaskConical className="h-12 w-12 mx-auto mb-4 text-slate-700" />
           <p className="font-mono text-slate-500 mb-4">Manual not found.</p>
-          <Link to="/manuals" className="text-sm text-accent hover:underline">
-            Back to Manuals
+          <Link to="/" className="text-sm text-accent hover:underline">
+            Back to Home
           </Link>
         </div>
       </div>
@@ -110,11 +110,11 @@ export function ManualReaderV2() {
       >
         {/* Back link */}
         <Link
-          to="/manuals"
+          to="/"
           className="inline-flex items-center gap-2 text-xs font-mono text-slate-500 hover:text-accent transition-colors mb-8"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Manuals
+          Back to Home
         </Link>
 
         {/* Holographic header card */}
