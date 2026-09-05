@@ -334,6 +334,14 @@ export function QuizRunnerV2() {
             >
               <h2 className="text-lg font-semibold text-slate-100 mb-6">{currentQ.text}</h2>
 
+              {currentQ.image_url && (
+                <img
+                  src={currentQ.image_url}
+                  alt="Question diagram"
+                  className="border border-emerald-500/30 rounded-lg max-h-80 object-contain shadow-[0_0_15px_rgba(16,185,129,0.15)] mb-6 mx-auto"
+                />
+              )}
+
               {/* Options */}
               <div className="space-y-3">
                 {currentQ.options.map((opt, oi) => {

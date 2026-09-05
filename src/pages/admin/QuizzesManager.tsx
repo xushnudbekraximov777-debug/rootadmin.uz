@@ -11,6 +11,7 @@ import { Badge } from "../../components/ui/badge";
 type QuestionDraft = {
   id: string;
   text: string;
+  image_url: string;
   options: { id: string; text: string; is_correct: boolean }[];
 };
 
@@ -31,6 +32,7 @@ function emptyQuestion(): QuestionDraft {
   return {
     id: uid(),
     text: "",
+    image_url: "",
     options: [
       { id: uid(), text: "", is_correct: true },
       { id: uid(), text: "", is_correct: false },
@@ -98,6 +100,7 @@ export function QuizzesManager() {
       questionDrafts.push({
         id: qq.id,
         text: qq.text,
+        image_url: qq.image_url ?? "",
         options: oRows.map((o) => ({ id: o.id, text: o.text, is_correct: o.is_correct })),
       });
     }
@@ -126,6 +129,12 @@ export function QuizzesManager() {
   const updateQuestionText = (idx: number, text: string) => {
     const qs = [...draft.questions];
     qs[idx] = { ...qs[idx], text };
+    setDraft({ ...draft, questions: qs });
+  };
+
+  const updateQuestionImage = (idx: number, image_url: string) => {
+    const qs = [...draft.questions];
+    qs[idx] = { ...qs[idx], image_url };
     setDraft({ ...draft, questions: qs });
   };
 
@@ -185,6 +194,7 @@ export function QuizzesManager() {
           quiz_id: quizId,
           text: qd.text,
           position: qi,
+          image_url: qd.image_url.trim() || null,
         }).select().single();
         const questionId = (newQ as QuizQuestion)?.id;
         if (!questionId) continue;
@@ -354,7 +364,16 @@ export function QuizzesManager() {
                   </div>
 
                   {isOpen && (
-                    <div className="ml-8 space-y-2">
+                    <div className="ml-8 space-y-3">
+                      <div>
+                        <Label>Image URL (optional)</Label>
+                        <Input
+                          value={q.image_url}
+                          onChange={(e) => updateQuestionImage(qi, e.target.value)}
+                          placeholder="https://example.com/topology.png"
+                          className="text-sm"
+                        />
+                      </div>
                       {q.options.map((opt, oi) => (
                         <div key={opt.id} className="flex items-center gap-3">
                           <button

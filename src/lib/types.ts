@@ -157,6 +157,7 @@ export type QuizQuestion = {
   quiz_id: string;
   text: string;
   position: number;
+  image_url?: string | null;
 };
 
 export type QuizOption = {
