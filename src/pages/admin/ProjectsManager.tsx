@@ -8,6 +8,7 @@ import { Input, Textarea, Label } from "../../components/ui/input";
 import { Select } from "../../components/ui/input";
 import { Dialog, DialogTitle } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
+import { MarkdownHelper } from "../../components/admin/MarkdownHelper";
 
 const empty: Omit<Project, "id" | "created_at"> = {
   title: "",
@@ -131,7 +132,10 @@ export function ProjectsManager() {
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
           <div>
-            <Label>Description</Label>
+            <div className="flex items-center justify-between mb-1.5">
+              <Label>Description (Markdown)</Label>
+              <MarkdownHelper />
+            </div>
             <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} />
           </div>
           <div>

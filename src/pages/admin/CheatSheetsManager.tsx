@@ -10,6 +10,7 @@ import { Dialog, DialogTitle } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
 import { Switch } from "../../components/ui/switch";
 import { MarkdownRenderer } from "../../components/public/MarkdownRenderer";
+import { MarkdownHelper } from "../../components/admin/MarkdownHelper";
 
 type FormState = Omit<CheatSheet, "id" | "created_at">;
 
@@ -271,6 +272,7 @@ export function CheatSheetsManager() {
             <div className="flex items-center justify-between mb-1.5">
               <Label>Content (Markdown)</Label>
               <div className="flex items-center gap-2">
+                <MarkdownHelper />
                 <button
                   onClick={() => setPreview(!preview)}
                   className="text-xs text-slate-400 hover:text-accent transition-colors"

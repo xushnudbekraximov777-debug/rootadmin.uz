@@ -8,6 +8,7 @@ import { Button } from "../../components/ui/button";
 import { Input, Textarea, Label, Select } from "../../components/ui/input";
 import { Dialog, DialogTitle } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
+import { MarkdownHelper } from "../../components/admin/MarkdownHelper";
 
 type FormState = Omit<CtfArticle, "id" | "created_at">;
 
@@ -205,8 +206,11 @@ export function CTFArticlesManager() {
             </div>
           </div>
           <div>
-            <Label>Content</Label>
-            <Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={6} />
+            <div className="flex items-center justify-between mb-1.5">
+              <Label>Content (Markdown)</Label>
+              <MarkdownHelper />
+            </div>
+            <Textarea value={form.content} onChange={(e) => setForm({ ...form, content: e.target.value })} rows={6} placeholder="Write your CTF writeup in Markdown..." className="font-mono text-sm" />
           </div>
           <div>
             <Label>Tags</Label>
