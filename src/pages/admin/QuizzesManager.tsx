@@ -5,7 +5,7 @@ import type { Quiz, QuizQuestion, QuizOption } from "../../lib/types";
 import { QUIZ_CATEGORIES } from "../../lib/types";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Input, Textarea, Label, Select } from "../../components/ui/input";
+import { Input, Textarea, Label } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 
 type QuestionDraft = {
@@ -307,14 +307,17 @@ export function QuizzesManager() {
                 </div>
                 <div>
                   <Label>Category</Label>
-                  <Select
+                  <Input
+                    list="quiz-categories"
                     value={draft.category}
                     onChange={(e) => setDraft({ ...draft, category: e.target.value })}
-                  >
+                    placeholder="Linux, Networking, Security..."
+                  />
+                  <datalist id="quiz-categories">
                     {QUIZ_CATEGORIES.map((c) => (
-                      <option key={c} value={c}>{c}</option>
+                      <option key={c} value={c} />
                     ))}
-                  </Select>
+                  </datalist>
                 </div>
               </div>
               <div className="mt-4">

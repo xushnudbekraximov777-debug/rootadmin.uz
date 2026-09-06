@@ -5,7 +5,7 @@ import type { LabManual } from "../../lib/types";
 import { LAB_MANUAL_CATEGORIES } from "../../lib/types";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Input, Textarea, Label, Select } from "../../components/ui/input";
+import { Input, Textarea, Label } from "../../components/ui/input";
 import { Dialog, DialogTitle } from "../../components/ui/dialog";
 import { Badge } from "../../components/ui/badge";
 import { MarkdownRenderer } from "../../components/public/MarkdownRenderer";
@@ -127,11 +127,17 @@ export function LabManualsManager() {
             </div>
             <div>
               <Label>Category</Label>
-              <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+              <Input
+                list="lab-manual-categories"
+                value={form.category}
+                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                placeholder="Linux, Networking, Security..."
+              />
+              <datalist id="lab-manual-categories">
                 {LAB_MANUAL_CATEGORIES.map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c} />
                 ))}
-              </Select>
+              </datalist>
             </div>
           </div>
 

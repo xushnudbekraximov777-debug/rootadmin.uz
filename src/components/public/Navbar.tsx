@@ -70,7 +70,7 @@ export function Navbar({ logo, cvUrl, showLabManuals, showQuizzes }: { logo: str
                 href="/manuals"
                 className="text-sm text-slate-400 hover:text-accent transition-colors"
               >
-                Lab Manuals
+                {t("nav.labManuals")}
               </a>
             )}
             {showQuizzes && (
@@ -78,7 +78,7 @@ export function Navbar({ logo, cvUrl, showLabManuals, showQuizzes }: { logo: str
                 href="/quizzes"
                 className="text-sm text-slate-400 hover:text-accent transition-colors"
               >
-                Skill Quizzes
+                {t("nav.skillQuizzes")}
               </a>
             )}
             {cvUrl && (
@@ -183,7 +183,7 @@ export function Navbar({ logo, cvUrl, showLabManuals, showQuizzes }: { logo: str
               onClick={() => setOpen(false)}
               className="block text-sm text-slate-400 hover:text-accent py-1"
             >
-              Lab Manuals
+              {t("nav.labManuals")}
             </a>
           )}
           {showQuizzes && (
@@ -192,7 +192,7 @@ export function Navbar({ logo, cvUrl, showLabManuals, showQuizzes }: { logo: str
               onClick={() => setOpen(false)}
               className="block text-sm text-slate-400 hover:text-accent py-1"
             >
-              Skill Quizzes
+              {t("nav.skillQuizzes")}
             </a>
           )}
           {cvUrl && (
